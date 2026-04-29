@@ -8,7 +8,7 @@ from qdrant_client_wrapper import get_qdrant_client
 # [MIGRATION] from google import genai / from google.genai import types を削除
 # [MIGRATION] AgentConfig, GeminiConfig を削除（Anthropic版では不要）
 # [MIGRATION] AnthropicClient を helper_llm 経由で使用
-from helper_llm import create_llm_client
+from helper.helper_llm import create_llm_client, ToolUseResponse
 from agent_tools import (
     search_rag_knowledge_base,
     list_rag_collections,
@@ -144,13 +144,13 @@ class ReActAgent:
         use_hybrid_search: bool = True  # ★追加: ハイブリッド検索フラグ
     ):
         self.selected_collections = selected_collections
-        # [MIGRATION] モデルデフォルト: "gemini-3-flash-preview" → "claude-sonnet-4-5"
+        # [MIGRATION] モデルデフォルト: "claude-sonnet-4-6"
         # [MIGRATION] 問題①修正: config_service.py の _get_default_config() も同時に更新済み
         self.model_name = model_name or get_config("models.default", "claude-sonnet-4-6")
         self.session_id = session_id or str(uuid.uuid4())
         self.use_hybrid_search = use_hybrid_search
 
-        # [MIGRATION] genai.Client() + chat → AnthropicClient (via create_llm_client)
+        # [MIGRATION] AnthropicClient (via create_llm_client)
         # チャットセッション管理は messages リストで自前管理するため、
         # _setup_client() / _create_chat() は廃止。
         self.llm = create_llm_client("anthropic", default_model=self.model_name)
@@ -279,15 +279,14 @@ class ReActAgent:
 
     def _execute_react_loop(self, user_input: str) -> Generator[Dict[str, Any], None, None]:
         """
-        [MIGRATION] ReAct ループを Anthropic Tool Use 形式で実装。
+        ReAct ループを Anthropic Tool Use 形式で実装。
 
-        Gemini との主な差異:
-          - chat.send_message() → generate_with_tools(messages, tools, system)
-          - part.function_call 走査 → stop_reason == "tool_use" + tool_calls リスト
-          - types.Part.from_function_response() → messages に2件追記
-              ① {"role":"assistant", "content": assistant_content}
-              ② {"role":"user",      "content": [{"type":"tool_result",...}]}
-          - 会話履歴は self._messages で自前管理（chat オブジェクト廃止）
+        generate_with_tools() が返す ToolUseResponse (NamedTuple) を使用し、
+        assistant_content の手動再構築は不要。
+          - result.assistant_message: response.content をそのまま保持
+          - result.tool_calls:        ツール呼び出しリスト
+          - result.stop_reason:       ループ継続判定
+          - 会話履歴は self._messages で管理（ターン開始時にリセット）
         """
         # --- キーワード抽出とプロンプト拡張（変更なし）---
         augmented_input = user_input
@@ -321,9 +320,12 @@ class ReActAgent:
             logger.debug(f"ReAct turn {turn_count}/{max_turns}")
 
             # [MIGRATION] LLM 呼び出し
-            # Gemini: current_response = self.chat.send_message(...)
-            # Anthropic: generate_with_tools() が (text, tool_calls, stop_reason) を返す
-            text, tool_calls, stop_reason = self.llm.generate_with_tools(
+            # 戻り値は ToolUseResponse (NamedTuple):
+            #   .text            — テキスト応答
+            #   .tool_calls      — ツール呼び出しリスト
+            #   .stop_reason     — 停止理由
+            #   .assistant_message — response.content をそのまま保持した assistant ターン
+            result: ToolUseResponse = self.llm.generate_with_tools(
                 messages   = self._messages,
                 tools      = self.tools,
                 system     = self.system_instruction,
@@ -331,39 +333,27 @@ class ReActAgent:
             )
 
             # テキスト部分のログ出力（Thought / 通常テキスト）
-            if text and ("Thought:" in text or "考え:" in text):
-                self.thought_log.append(f"🧠 **Thought:**\n{text}")
-                yield {"type": "log", "content": f"🧠 **Thought:**\n{text}"}
+            if result.text and ("Thought:" in result.text or "考え:" in result.text):
+                self.thought_log.append(f"🧠 **Thought:**\n{result.text}")
+                yield {"type": "log", "content": f"🧠 **Thought:**\n{result.text}"}
 
-            # [MIGRATION] ツール呼び出し検出
-            # Gemini: part.function_call が存在するか走査
-            # Anthropic: stop_reason == "tool_use" + tool_calls リストで判定
-            if stop_reason != "tool_use" or not tool_calls:
+            # ツール呼び出し検出: stop_reason == "tool_use" + tool_calls で判定
+            if result.stop_reason != "tool_use" or not result.tool_calls:
                 # ツール呼び出しなし → 最終回答
-                final_text_from_react = text
+                final_text_from_react = result.text
                 break
 
             # --- ツール呼び出し処理 ---
-            # [MIGRATION] Anthropic: アシスタントターンを messages に保存
-            # Gemini では chat オブジェクトが自動管理していたが、
-            # Anthropic ではアシスタントの応答を手動で追記する必要がある。
-            assistant_content: List[Dict[str, Any]] = []
-            if text:
-                assistant_content.append({"type": "text", "text": text})
-            for tc in tool_calls:
-                assistant_content.append({
-                    "type" : "tool_use",
-                    "id"   : tc["id"],
-                    "name" : tc["name"],
-                    "input": tc["input"],
-                })
-            self._messages.append({"role": "assistant", "content": assistant_content})
+            # assistant ターンを会話履歴に追記
+            # result.assistant_message は response.content をそのまま保持しているため
+            # ブロック順序・構造の完全性が保証される（再構築不要）
+            self._messages.append(result.assistant_message)
 
-            # [MIGRATION] 複数ツールの同時呼び出しに対応
-            # Gemini では1件ずつ処理していたが、Anthropic では全件を同一 user メッセージにまとめる
+            # 複数ツールの同時呼び出しに対応
+            # 全ツール結果を同一 user メッセージにまとめて追記
             tool_results_content: List[Dict[str, Any]] = []
 
-            for tc in tool_calls:
+            for tc in result.tool_calls:
                 tool_name = tc["name"]
                 tool_args = tc["input"]
                 tool_id   = tc["id"]
@@ -452,14 +442,14 @@ class ReActAgent:
             # generate_with_tools(tools=[]) を使うことで、self._messages を全件渡し、
             # Gemini の chat.send_message() と同様に会話コンテキストを維持する。
             self._messages.append({"role": "user", "content": reflection_msg})
-            reflection_raw, _, _ = self.llm.generate_with_tools(
+            result: ToolUseResponse = self.llm.generate_with_tools(
                 messages   = self._messages,
                 tools      = [],                # Tool Use なし（Reflection ではツール不要）
                 system     = self.system_instruction,
                 model      = self.model_name,
                 max_tokens = get_config("agent.reflection_max_tokens", 2048),
             )
-            reflection_text = reflection_raw
+            reflection_text = result.text
 
             if not reflection_text:
                 logger.warning("Reflection phase did not generate text.")
@@ -490,9 +480,10 @@ class ReActAgent:
                 final_response_text = reflection_answer
                 logger.info(f"Reflection Answer: {reflection_answer[:100]}...")
 
-            # [MIGRATION] Reflection 応答を会話履歴に追記（次回ターンへの引き継ぎ用）
+            # Reflection 応答を会話履歴に追記（次回ターンへの引き継ぎ用）
+            # result.assistant_message は response.content をそのまま保持
             if reflection_text:
-                self._messages.append({"role": "assistant", "content": reflection_text})
+                self._messages.append(result.assistant_message)
 
         except Exception as e:
             logger.error(f"Error during reflection phase: {e}")

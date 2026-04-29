@@ -1,6 +1,6 @@
 # reasoning（推論機能）- 横断モジュール構成 ドキュメント
 
-**Version 1.0** | 最終更新: 2026-02-20
+**Version 2.0** | 最終更新: 2026-04-28
 
 ---
 
@@ -26,7 +26,7 @@
 ### 主な責務
 
 - 収集した情報（RAG検索結果・Web検索結果・他ステップ出力）を統合して最終回答を生成
-- Gemini API を用いた推論プロンプトの構築と LLM 呼び出し
+- **Anthropic Claude API** を用いた推論プロンプトの構築と LLM 呼び出し
 - 実行計画の最終ステップとして `final_answer` を提供
 - 信頼度計算における非検索ステップとしての評価
 - リプランにおけるフォールバック昇格の起点
@@ -35,7 +35,7 @@
 
 | # | 責務 | 対応モジュール | 説明 |
 |---|------|--------------|------|
-| 1 | 推論の実行（LLM呼び出し） | `tools.py` | `ReasoningTool.execute()` が Gemini API を呼び出し回答を生成 |
+| 1 | 推論の実行（LLM呼び出し） | `tools.py` | `ReasoningTool.execute()` が `AnthropicClient.generate_content()` を呼び出し回答を生成 |
 | 2 | 推論プロンプトの構築 | `tools.py` | `ReasoningTool._build_prompt()` が参照情報・コンテキスト・ルールを結合 |
 | 3 | 計画への reasoning ステップ配置 | `planner.py` | `PLAN_GENERATION_PROMPT` で最終ステップに `reasoning` を強制指示 |
 | 4 | 依存ステップ結果の入力準備 | `executor.py` | `_prepare_tool_kwargs()` が依存ステップ出力を `sources`/`context` に変換 |
@@ -49,7 +49,7 @@
 | 機能 | 所在 | 説明 |
 |------|------|------|
 | `ReasoningTool` | `tools.py` L303 | LLM推論ツール本体クラス（`BaseTool` 継承） |
-| `ReasoningTool.execute()` | `tools.py` L318 | query/context/sources を受け取り Gemini API で回答生成 |
+| `ReasoningTool.execute()` | `tools.py` L318 | query/context/sources を受け取り **Anthropic Claude API**（`generate_content()`）で回答生成 |
 | `ReasoningTool._build_prompt()` | `tools.py` L395 | 5パート構成の推論プロンプトを構築 |
 | `ActionType.REASONING` | `schemas.py` | `"reasoning"` アクション種別の Enum 定義 |
 | `PlanStep.action` | `schemas.py` | Literal に `"reasoning"` を含む |
@@ -89,7 +89,7 @@ graph TB
     end
 
     subgraph LLM_LAYER["LLMサービス層"]
-        GEMINI["Gemini API"]
+        ANTHROPIC["Anthropic Claude API"]
     end
 
     subgraph EVAL["評価層"]
@@ -103,14 +103,30 @@ graph TB
     RAG --> PREP
     WEB --> PREP
     REGISTRY --> REASONING
-    REASONING --> GEMINI
+    REASONING --> ANTHROPIC
     REASONING --> FINAL --> STREAMLIT
     REASONING --> CONF
     CONF --> REPLAN
 
-    style REASONING fill:#000,color:#fff
+    style USER fill:#000,color:#fff
+    style STREAMLIT fill:#000,color:#fff
+    style PLANNER fill:#000,color:#fff
+    style EXECUTOR fill:#000,color:#fff
     style PREP fill:#000,color:#fff
     style FINAL fill:#000,color:#fff
+    style REGISTRY fill:#000,color:#fff
+    style REASONING fill:#000,color:#fff
+    style RAG fill:#000,color:#fff
+    style WEB fill:#000,color:#fff
+    style ANTHROPIC fill:#000,color:#fff
+    style CONF fill:#000,color:#fff
+    style REPLAN fill:#000,color:#fff
+    style CLIENT fill:#1a1a1a,stroke:#555
+    style PLAN fill:#1a1a1a,stroke:#555
+    style EXEC fill:#1a1a1a,stroke:#555
+    style TOOLS fill:#1a1a1a,stroke:#555
+    style LLM_LAYER fill:#1a1a1a,stroke:#555
+    style EVAL fill:#1a1a1a,stroke:#555
 ```
 
 ### 1.2 データフロー概要
@@ -122,13 +138,21 @@ flowchart LR
     S1 --> PREP["_prepare_tool_kwargs()<br>sources / context 準備"]
     PREP --> S2["Step N（最終）<br>ReasoningTool.execute()"]
     S2 --> BUILD["_build_prompt()<br>プロンプト構築"]
-    BUILD --> GEMINI["Gemini API"]
-    GEMINI --> ANS["回答テキスト"]
+    BUILD --> ANTHROPIC["Anthropic Claude API"]
+    ANTHROPIC --> ANS["回答テキスト"]
     ANS --> RESULT["_create_result()<br>final_answer 抽出"]
     RESULT --> UI["ユーザーへ表示"]
 
+    style Q fill:#000,color:#fff
+    style P fill:#000,color:#fff
+    style S1 fill:#000,color:#fff
+    style PREP fill:#000,color:#fff
     style S2 fill:#000,color:#fff
     style BUILD fill:#000,color:#fff
+    style ANTHROPIC fill:#000,color:#fff
+    style ANS fill:#000,color:#fff
+    style RESULT fill:#000,color:#fff
+    style UI fill:#000,color:#fff
 ```
 
 ---
@@ -189,9 +213,28 @@ flowchart TB
     EXEC_M --> CALC
     CHAIN -.-> RT
 
+    style AT fill:#000,color:#fff
+    style PS fill:#000,color:#fff
+    style LLM_CFG fill:#000,color:#fff
+    style TOOLS_CFG fill:#000,color:#fff
+    style PROMPT fill:#000,color:#fff
+    style FALLBACK_PLAN fill:#000,color:#fff
+    style BASE fill:#000,color:#fff
     style RT fill:#000,color:#fff
     style EXEC_M fill:#000,color:#fff
     style BUILD_M fill:#000,color:#fff
+    style REG fill:#000,color:#fff
+    style PREP_M fill:#000,color:#fff
+    style CREATE_R fill:#000,color:#fff
+    style CALC fill:#000,color:#fff
+    style CHAIN fill:#000,color:#fff
+    style SCHEMAS fill:#1a1a1a,stroke:#555
+    style CONFIG_MOD fill:#1a1a1a,stroke:#555
+    style PLANNER_MOD fill:#1a1a1a,stroke:#555
+    style TOOLS_MOD fill:#1a1a1a,stroke:#555
+    style EXECUTOR_MOD fill:#1a1a1a,stroke:#555
+    style CONFIDENCE_MOD fill:#1a1a1a,stroke:#555
+    style REPLAN_MOD fill:#1a1a1a,stroke:#555
 ```
 
 ### 2.2 モジュール依存関係
@@ -201,6 +244,7 @@ flowchart TB
 | `schemas.py` | アクション種別定義 | `tools.py` → `schemas.py` |
 | `config.py` | LLMパラメータ・有効化設定 | `tools.py` → `config.py` |
 | `grace_config.yml` | `tools.enabled: reasoning` 設定 | `config.py` → YAML |
+| `helper_llm` | `create_llm_client("anthropic")` → `AnthropicClient` 生成 | `tools.py` → `helper_llm` |
 | `planner.py` | 計画に reasoning を最終ステップ配置 | `planner.py` → `schemas.py` |
 | `tools.py` | **ReasoningTool 実体** | 中核 |
 | `executor.py` | 入力準備 + 最終回答抽出 | `executor.py` → `tools.py` |
@@ -221,7 +265,7 @@ flowchart TB
 
 | メソッド | クラス | 行番号 | 説明 |
 |----------|--------|--------|------|
-| `__init__` | `ReasoningTool` | L309 | 初期化（Gemini Client生成、モデル名読み込み） |
+| `__init__` | `ReasoningTool` | L309 | 初期化（`AnthropicClient` 生成、モデル名読み込み） |
 | `execute` | `ReasoningTool` | L318 | LLM推論を実行し `ToolResult` を返却 |
 | `_build_prompt` | `ReasoningTool` | L395 | 推論用プロンプトを5パート構成で構築 |
 
@@ -261,7 +305,7 @@ class ReasoningTool(BaseTool):
 |------|----|------|
 | `config` | `GraceConfig` | GRACE統合設定 |
 | `model_name` | `str` | 使用するLLMモデル名（デフォルト: `config.llm.model`） |
-| `client` | `genai.Client` | Google Gemini API クライアント |
+| `llm` | `AnthropicClient` | `helper_llm.create_llm_client("anthropic")` で生成した LLM クライアント |
 
 ---
 
@@ -282,7 +326,7 @@ def __init__(
 | 区分 | 内容 |
 |------|------|
 | **Input** | `config`: GraceConfig（省略時 `get_config()` で取得）、`model_name`: LLMモデル名（省略時 `config.llm.model`） |
-| **Process** | 1. `config` を設定（引数 or `get_config()`）<br>2. `model_name` を設定（引数 or `config.llm.model`）<br>3. `genai.Client()` を生成して `self.client` に格納 |
+| **Process** | 1. `config` を設定（引数 or `get_config()`）<br>2. `model_name` を設定（引数 or `config.llm.model`）<br>3. `create_llm_client("anthropic", default_model=self.model_name)` で `AnthropicClient` を生成して `self.llm` に格納 |
 | **Output** | なし（インスタンス初期化） |
 
 ---
@@ -306,7 +350,7 @@ def execute(
 | 区分 | 内容 |
 |------|------|
 | **Input** | `query`: ユーザーの元クエリ<br>`context`: 補足コンテキスト（他ステップのテキスト出力）<br>`sources`: 参照ソースのリスト（RAG/Web検索結果の `List[Dict]`） |
-| **Process** | 1. 実行開始時刻を記録<br>2. `_build_prompt(query, context, sources)` でプロンプト構築<br>3. IPO INPUT ログ出力<br>4. `self.client.models.generate_content()` で Gemini API 呼び出し<br>&nbsp;&nbsp;&nbsp;— model: `self.model_name`<br>&nbsp;&nbsp;&nbsp;— temperature: `config.llm.temperature`<br>&nbsp;&nbsp;&nbsp;— max_output_tokens: `config.llm.max_tokens`<br>5. `response.text` から回答テキスト取得<br>6. IPO OUTPUT ログ出力<br>7. 実行時間（ms）算出<br>8. `response.usage_metadata` からトークン使用量を抽出<br>9. `ToolResult(success=True, ...)` を生成して返却<br>10. 例外時: `ToolResult(success=False, error=str(e))` を返却 |
+| **Process** | 1. 実行開始時刻を記録<br>2. `_build_prompt(query, context, sources)` でプロンプト構築<br>3. IPO INPUT ログ出力<br>4. `self.llm.generate_content()` で **Anthropic Claude API** 呼び出し（`str` が直接返る）<br>&nbsp;&nbsp;&nbsp;— model: `self.model_name`<br>&nbsp;&nbsp;&nbsp;— temperature: `config.llm.temperature`<br>&nbsp;&nbsp;&nbsp;— max_tokens: `config.llm.max_tokens`<br>&nbsp;&nbsp;&nbsp;— system: ハイブリッド・ナレッジ・エージェントのロール定義<br>5. 回答テキスト（`str`）を取得<br>6. IPO OUTPUT ログ出力<br>7. 実行時間（ms）算出<br>8. `ToolResult(success=True, ...)` を生成して返却（`token_usage` は常に `{}` — `generate_content()` は `str` 返却のため取得不可）<br>9. 例外時: `ToolResult(success=False, error=str(e))` を返却 |
 | **Output** | `ToolResult` |
 
 ##### 戻り値例（成功時）
@@ -316,13 +360,10 @@ ToolResult(
     success=True,
     output="社内ナレッジ（FAQ_2024.md）によると、有給休暇は年間20日付与されます。...",
     confidence_factors={
-        "has_sources": True,       # sources が渡されたか
-        "source_count": 3,         # sources の件数
-        "answer_length": 256,      # 回答文字数
-        "token_usage": {
-            "input_tokens": 1200,
-            "output_tokens": 150,
-        }
+        "has_sources": True,    # sources が渡されたか
+        "source_count": 3,      # sources の件数
+        "answer_length": 256,   # 回答文字数
+        "token_usage": {}       # generate_content() は str 返却のため常に空辞書
     },
     execution_time_ms=2340
 )
@@ -376,7 +417,11 @@ flowchart TB
     P1 --> P2 --> P3 --> P4 --> P5
 
     style P1 fill:#000,color:#fff
+    style P2 fill:#000,color:#fff
+    style P3 fill:#000,color:#fff
+    style P4 fill:#000,color:#fff
     style P5 fill:#000,color:#fff
+    style PROMPT fill:#1a1a1a,stroke:#555
 ```
 
 ##### sources 1件あたりの展開フォーマット
@@ -503,10 +548,10 @@ if fallback_action == "reasoning" and step.action in self._SEARCH_FALLBACK_CHAIN
 
 | キー | デフォルト値 | 説明 |
 |------|------------|------|
-| `llm.provider` | `"gemini"` | LLMプロバイダ |
-| `llm.model` | `"gemini-3-flash-preview"` | 使用モデル名 → `ReasoningTool.model_name` |
-| `llm.temperature` | `0.7` | 生成温度 → `GenerateContentConfig.temperature` |
-| `llm.max_tokens` | `4096` | 最大出力トークン数 → `GenerateContentConfig.max_output_tokens` |
+| `llm.provider` | `"anthropic"` | LLMプロバイダ |
+| `llm.model` | `"claude-sonnet-4-6"` | 使用モデル名 → `ReasoningTool.model_name` |
+| `llm.temperature` | `0.7` | 生成温度 → `generate_content()` の `temperature` 引数 |
+| `llm.max_tokens` | `4096` | 最大出力トークン数 → `generate_content()` の `max_tokens` 引数 |
 | `llm.timeout` | `30` | タイムアウト秒数 |
 
 #### ツール有効化設定
@@ -669,6 +714,7 @@ from grace.tools import (
 | バージョン | 日付 | 変更内容 |
 |-----------|------|---------|
 | 1.0 | 2026-02-20 | 初版作成。reasoning の横断モジュール構成を文書化 |
+| 2.0 | 2026-04-28 | **Anthropic マイグレーション対応**: `genai.Client()` → `AnthropicClient`（`create_llm_client("anthropic")` 経由）。インスタンス属性 `client` → `llm`。`response.text` / `response.usage_metadata` → `str` 直接返却 / `token_usage={}` に変更。`llm.provider` / `llm.model` デフォルト値を更新。モジュール依存テーブルに `helper_llm` 追加。全Mermaid図の `Gemini API` ノードを `Anthropic Claude API` に置換。 |
 
 ---
 
@@ -700,7 +746,7 @@ flowchart TB
 
     subgraph PHASE4["Phase 4: Step 2 実行"]
         BUILD2["_build_prompt()<br>5パート構成"]
-        GEMINI2["Gemini API<br>generate_content()"]
+        ANTHROPIC2["Anthropic Claude API<br>llm.generate_content()"]
         ANS2["ToolResult<br>output=回答テキスト"]
     end
 
@@ -716,12 +762,30 @@ flowchart TB
     PREP2 --> CONTEXT
     SOURCES --> BUILD2
     CONTEXT --> BUILD2
-    BUILD2 --> GEMINI2 --> ANS2
+    BUILD2 --> ANTHROPIC2 --> ANS2
     ANS2 --> CREATE --> FINAL2
 
+    style Q fill:#000,color:#fff
+    style PLAN fill:#000,color:#fff
+    style S1 fill:#000,color:#fff
     style S2 fill:#000,color:#fff
+    style RAG fill:#000,color:#fff
+    style RAG_OUT fill:#000,color:#fff
+    style SR fill:#000,color:#fff
+    style PREP2 fill:#000,color:#fff
+    style PARSE fill:#000,color:#fff
+    style SOURCES fill:#000,color:#fff
+    style CONTEXT fill:#000,color:#fff
     style BUILD2 fill:#000,color:#fff
+    style ANTHROPIC2 fill:#000,color:#fff
+    style ANS2 fill:#000,color:#fff
+    style CREATE fill:#000,color:#fff
     style FINAL2 fill:#000,color:#fff
+    style PHASE1 fill:#1a1a1a,stroke:#555
+    style PHASE2 fill:#1a1a1a,stroke:#555
+    style PHASE3 fill:#1a1a1a,stroke:#555
+    style PHASE4 fill:#1a1a1a,stroke:#555
+    style PHASE5 fill:#1a1a1a,stroke:#555
 ```
 
 ### 3ステップパターン: rag_search → web_search → reasoning
@@ -735,9 +799,14 @@ flowchart TB
     S1 --> |"sources (RAG結果)"| PREP3["_prepare_tool_kwargs()"]
     S2 --> |"context (Webテキスト)"| PREP3
     PREP3 --> BUILD3["_build_prompt()"]
-    BUILD3 --> |"参照情報 + 補足コンテキスト + 質問 + ルール"| GEMINI3["Gemini API"]
-    GEMINI3 --> FINAL3["final_answer"]
+    BUILD3 --> |"参照情報 + 補足コンテキスト + 質問 + ルール"| ANTHROPIC3["Anthropic Claude API"]
+    ANTHROPIC3 --> FINAL3["final_answer"]
 
+    style S1 fill:#000,color:#fff
+    style S2 fill:#000,color:#fff
     style S3 fill:#000,color:#fff
+    style PREP3 fill:#000,color:#fff
+    style BUILD3 fill:#000,color:#fff
+    style ANTHROPIC3 fill:#000,color:#fff
     style FINAL3 fill:#000,color:#fff
 ```

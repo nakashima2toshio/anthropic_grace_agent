@@ -1,5 +1,7 @@
 # GRACE Agent - 処理フロー仕様書
 
+> **[2026-04-28 更新]** LLM バックエンドを Gemini API → **Anthropic Claude API**、Embedding バックエンドを Gemini Embedding → **OpenAI Embedding** にマイグレーション済み。
+
 ## 1. 全体アーキテクチャ概要
 
 GRACE (Guided Reasoning with Adaptive Confidence Execution) は、**Plan → Execute → Evaluate → Intervene → Replan** のループで動作する自律型エージェントシステムです。
@@ -28,21 +30,22 @@ grace/
 ## 3. 処理フロー全体図
 
 ```
-[User Query
+[User Query]
     │
     ▼
 ┌──────────────────────────────────────────┐
-│ [Phase 1] config.py - 設定ロード         　│
-│  GraceConfig (YAML + 環境変数)           　│
+│ [Phase 1] config.py - 設定ロード           │
+│  GraceConfig (YAML + 環境変数)             │
 └──────────────┬───────────────────────────┘
                │
                ▼
 ┌──────────────────────────────────────────┐
-│ [Phase 2] [planner.py] - 計画生成         │
-│  (1) 複雑度推定 (LLM)                   　 │
-│  (2) 利用可能コレクション取得            　　 │
-│  (3) LLM で ExecutionPlan (JSON) 生成   　│
-│  (4) 依存関係検証                       　 │
+│ [Phase 2] [planner.py] - 計画生成          │
+│  (1) 複雑度推定 (Anthropic Claude API)     │
+│  (2) 利用可能コレクション取得                │
+│  (3) Anthropic Claude API で               │
+│      ExecutionPlan 生成 (Tool Use)         │
+│  (4) 依存関係検証                           │
 └──────────────┬───────────────────────────┘
                │ ExecutionPlan
                ▼
@@ -80,6 +83,15 @@ grace/
 
 **設定の読み込み優先順**: `config/grace_config.yml` → `GRACE_*` 環境変数でオーバーライド
 
+**主要デフォルト値（マイグレーション後）**:
+
+| 設定キー | マイグレーション前 | マイグレーション後 |
+|---------|------------------|------------------|
+| `llm.provider` | `"gemini"` | `"anthropic"` |
+| `llm.model` | `"gemini-3-flash-preview"` | `"claude-sonnet-4-6"` |
+| `embedding.provider` | `"gemini"` | `"openai"` |
+| `embedding.model` | `"gemini-embedding-001"` | `"text-embedding-3-large"` |
+
 **他モジュールとの関係**: すべてのモジュールが `get_config()` を通じて設定を取得する。
 
 ---
@@ -106,30 +118,32 @@ grace/
 
 ### 4.3 planner.py - 計画生成（Phase 2）
 
-**役割**: ユーザーの質問を受け取り、LLM で実行計画（`ExecutionPlan`）を生成する。
+**役割**: ユーザーの質問を受け取り、**Anthropic Claude API** で実行計画（`ExecutionPlan`）を生成する。
 
 **処理フロー**:
 
+```
 create_plan(query)
 │
 ├─ (1) _get_available_collections()
 │       Qdrant から利用可能コレクション一覧を取得
 │
 ├─ (2) estimate_complexity_with_llm(query)
-│       LLM で複雑度 (0.0-1.0) を推定
+│       Anthropic Claude API で複雑度 (0.0-1.0) を推定
 │       失敗時は estimate_complexity() (キーワードベース) にフォールバック
 │
-├─ (3) LLM 呼び出し (Gemini API)
+├─ (3) Anthropic Claude API 呼び出し（Tool Use 経由）
 │       ・PLAN_GENERATION_PROMPT にコレクション情報・クエリを埋め込み
-│       ・response_schema=ExecutionPlan で構造化出力
-│       ・最大2回リトライ（空レスポンス/JSON不正時）
+│       ・llm.generate_structured(response_schema=ExecutionPlan) で
+│         Tool Use を使用した構造化出力（ExecutionPlan を直接返す）
+│       ・最大2回リトライ（API呼び出し失敗時）
+│       ・空レスポンス・JSON不正チェック不要（Tool Use が保証）
 │
 ├─ (4) validate_plan_dependencies(plan)
 │       依存関係の循環・後方依存をチェック
 │
 └─ (5) 失敗時: _create_fallback_plan(query)
-rag_search → reasoning の2ステップ計画を静的に生成
-
+        rag_search → reasoning の2ステップ計画を静的に生成
 ```
 
 **計画生成ルール（プロンプトで強制）**:
@@ -138,7 +152,7 @@ rag_search → reasoning の2ステップ計画を静的に生成
 - `web_search` は計画に含めず、Executor が動的に実行する
 - `rag_search` の `fallback` には `"web_search"` を指定
 
-**出力**: `ExecutionPlan`（JSON 構造化出力）
+**出力**: `ExecutionPlan`（Tool Use 経由の構造化出力）
 
 **次のモジュールへの受け渡し**: `executor.py` の `execute_plan()` または `execute_plan_generator()` に渡される。
 
@@ -154,8 +168,8 @@ rag_search → reasoning の2ステップ計画を静的に生成
 |:---|:---|:---|
 | `rag_search` | `RAGSearchTool` | Qdrant ベクトル DB 検索。複数コレクションを優先順に自動フォールバック。Dynamic Thresholding（Top1 が 0.98 以上なら他を除去）。 |
 | `web_search` | `WebSearchTool` | Web 検索。バックエンド切替可能（SerpAPI / DuckDuckGo / Google CSE）。結果を RAG 互換フォーマットに変換。 |
-| `reasoning` | `ReasoningTool` | 収集情報を統合して回答を生成。LLM（Gemini）で推論。先行ステップの結果をコンテキストとして受け取る。 |
-| `ask_user` | `AskUserTool` | ユーザーへの追加情報要求。質問文・理由・緊急度を構造化して出力。 |
+| `reasoning` | `ReasoningTool` | 収集情報を統合して回答を生成。**Anthropic Claude API**（`generate_content()`）で推論。先行ステップの結果をコンテキストとして受け取る。 |
+| `ask_user` | `AskUserTool` | ユーザーへの追加情報要求。質問文・理由・緊急度を構造化して出力。ツール定義は **Anthropic Tool Use 形式**（`"input_schema"` キー）を使用。 |
 
 **ToolRegistry**: 設定の `tools.enabled` に基づき、使用可能なツールだけを登録する。
 
@@ -177,7 +191,6 @@ rag_search → reasoning の2ステップ計画を静的に生成
 **ステップ実行フロー（`execute_plan_generator`）**:
 
 ```
-
 for step in plan.steps:
 │
 ├─ (1) 依存関係チェック (_check_dependencies)
@@ -212,8 +225,7 @@ for step in plan.steps:
 │       CONFIRM/ESCALATE → 一時停止・ユーザー確認
 │
 └─ (6) 失敗時リプラン
-replan.py の ReplanOrchestrator に委譲
-
+        replan.py の ReplanOrchestrator に委譲
 ```
 
 **動的ステップ挿入**:
@@ -235,9 +247,9 @@ replan.py の ReplanOrchestrator に委譲
 | クラス | 説明 |
 |:---|:---|
 | `ConfidenceCalculator` | 重み付き平均 + ペナルティによるハイブリッド信頼度計算。検索ステップと推論ステップで計算ロジックを分離。 |
-| `LLMSelfEvaluator` | LLM にステップ出力の信頼度を自己評価させる (0.0-1.0 + 理由)。Gemini Structured Output で応答。 |
-| `SourceAgreementCalculator` | 複数ソースの回答をEmbeddingし、コサイン類似度で一致度を計算。 |
-| `QueryCoverageCalculator` | 最終回答がクエリの全要素をカバーしているか LLM で評価 (0.0-1.0)。 |
+| `LLMSelfEvaluator` | **Anthropic Claude API**（`generate_structured()` / Tool Use）でステップ出力の信頼度を自己評価（0.0-1.0 + 理由）。 |
+| `SourceAgreementCalculator` | 複数ソースの回答を **OpenAI Embedding**（`text-embedding-3-large` / 3072次元）でベクトル化し、コサイン類似度で一致度を計算。 |
+| `QueryCoverageCalculator` | 最終回答がクエリの全要素をカバーしているか **Anthropic Claude API**（`generate_content()`）で評価（0.0-1.0）。 |
 | `ConfidenceAggregator` | 複数ステップの信頼度を集計（mean / min / weighted）。 |
 
 **信頼度の構成要素 (`ConfidenceFactors`)**:
@@ -317,41 +329,40 @@ replan.py の ReplanOrchestrator に委譲
 ## 5. モジュール間の依存関係
 
 ```
-
 config.py ◄──── (全モジュールが参照)
 schemas.py ◄──── (全モジュールが参照)
 
 planner.py
 ├── uses: config.py, schemas.py
-├── uses: Gemini API (計画生成)
-└── uses: Qdrant (コレクション取得)
+├── uses: helper_llm → Anthropic Claude API（計画生成・複雑度推定）
+└── uses: Qdrant（コレクション取得）
 
 tools.py
 ├── uses: config.py
-├── uses: Qdrant (RAG検索)
-├── uses: Gemini API (reasoning)
-└── uses: SerpAPI / DuckDuckGo (Web検索)
+├── uses: Qdrant（RAG検索）
+├── uses: helper_llm → Anthropic Claude API（reasoning）
+└── uses: SerpAPI / DuckDuckGo（Web検索）
 
 executor.py
 ├── uses: config.py, schemas.py
-├── uses: tools.py (ToolRegistry)
-├── uses: confidence.py (信頼度計算)
-├── uses: intervention.py (介入処理)
-├── uses: replan.py (リプラン)
-└── uses: Gemini API (RAG意味的適合性判定)
+├── uses: tools.py（ToolRegistry）
+├── uses: confidence.py（信頼度計算）
+├── uses: intervention.py（介入処理）
+├── uses: replan.py（リプラン）
+└── uses: helper_llm → Anthropic Claude API（RAG意味的適合性判定）
 
 confidence.py
 ├── uses: config.py
-└── uses: Gemini API (LLM自己評価, Query Coverage)
+├── uses: helper_llm → Anthropic Claude API（LLM自己評価, Query Coverage）
+└── uses: helper_embedding → OpenAI Embedding（SourceAgreement計算）
 
 intervention.py
 ├── uses: config.py, schemas.py
-└── uses: confidence.py (InterventionLevel)
+└── uses: confidence.py（InterventionLevel）
 
 replan.py
 ├── uses: config.py, schemas.py
-└── uses: planner.py (再計画生成)
-
+└── uses: planner.py（再計画生成）
 ```
 
 ---
@@ -361,7 +372,6 @@ replan.py
 ### 6.1 正常系（RAG 検索成功）
 
 ```
-
 1. User → "金色夜叉の著者は誰ですか？"
 2. Planner.create_plan()
    → 複雑度推定: 0.3
@@ -376,13 +386,11 @@ replan.py
    → confidence = 0.88
 5. _calculate_overall_confidence() → 0.87
 6. ExecutionResult(final_answer="...", overall_confidence=0.87)
-
 ```
 
 ### 6.2 異常系（RAG 意味不適合 → Web 検索）
 
 ```
-
 1. User → "日本の政治制度について教えてください"
 2. Planner → Plan: [rag_search → reasoning]
 3. Executor: Step 1 - rag_search
@@ -393,20 +401,17 @@ replan.py
 4. Executor: Step 2 - reasoning
    → RAG + Web の両方をコンテキストに回答生成
 5. ExecutionResult
-
 ```
 
 ### 6.3 リプラン発生
 
 ```
-
 1. Executor: Step 1 - rag_search → 失敗
 2. ReplanOrchestrator.handle_step_failure()
    → should_replan: True (STEP_FAILED)
    → strategy: FULL (序盤失敗)
    → create_new_plan() → 新しい ExecutionPlan
 3. Executor: 新計画で再実行
-
 ```
 
 ---
@@ -416,11 +421,9 @@ replan.py
 | # | 項目 | 詳細 |
 |:---|:---|:---|
 | 1 | **UI 層 (`ui/pages/`)** | `show_grace_chat_page` がどのように `Planner` → `Executor` を呼び出しているかのコード未提供。UI コールバック (`on_step_start`, `on_intervention_required` 等) の実装詳細が不明。 |
-| 2 | **`services/` 層** | `agent_service.py` (Legacy ReActAgent), `qdrant_service.py`, `prompts.py` の詳細が未提供。特に `search_rag_knowledge_base_structured()` の実装。 |
+| 2 | **`services/` 層** | `agent_service.py`（Legacy ReActAgent、Anthropic 版 `generate_with_tools()` 対応済みか要確認）、`qdrant_service.py`、`prompts.py` の詳細が未提供。特に `search_rag_knowledge_base_structured()` の実装。 |
 | 3 | **`agent_tools.py`** | `RAGSearchTool` 内で `from agent_tools import search_rag_knowledge_base_structured` しているが、このモジュールの詳細が不明。 |
 | 4 | **`regex_mecab.py`** | `KeywordExtractor` の実装詳細（Planner / RAGSearchTool で初期化されるが、現在はコメントアウトされている箇所が多い）。 |
 | 5 | **`qdrant_client_wrapper.py`** | `search_collection`, `embed_query_unified` 等のラッパー関数の詳細。 |
-| 6 | **`config/grace_config.yml`** | 実際の設定ファイル内容（デフォルト値と運用値の差分）。 |
-| 7 | **`confidence.py` 280-689行** | `LLMSelfEvaluator` の `evaluate_with_factors()` 等、ファイル中間部の実装詳細（truncated 部分）。 |
-| 8 | **`tools.py` 239-643行** | `WebSearchTool` の `execute()` メソッド本体、`ReasoningTool` と `AskUserTool` の全実装（truncated 部分）。 |
-```
+| 6 | **`config/grace_config.yml`** | 実際の設定ファイル内容（デフォルト値と運用値の差分）。`llm.provider=anthropic`, `embedding.provider=openai` への更新要否。 |
+| 7 | **`services/agent_service.py` Anthropic 対応状況** | **確認済み ✅**。`ReActAgent` は完全に Anthropic 移行済み。`generate_with_tools()` によるReActループ、`generate_with_tools(tools=[])` によるReflectionフェーズ、`self._messages` による会話履歴自前管理を実装。詳細は `executor.md` §5.1 参照。 |

@@ -1,6 +1,6 @@
 # tools.py - ツール定義モジュール ドキュメント
 
-**Version 2.0** | 最終更新: 2026-02-19
+**Version 3.0** | 最終更新: 2026-04-28
 
 ---
 
@@ -68,7 +68,7 @@
 | 1 | ツールの統一インターフェース定義 | `tools.py` | BaseTool抽象基底クラスとToolResultデータクラス |
 | 2 | RAG検索ツールによるQdrantベクトルDB検索 | `tools.py` | RAGSearchToolクラス（agent_tools委譲） |
 | 3 | Web検索ツールによる外部情報の取得 | `tools.py` | WebSearchToolクラス（SerpAPI/DDG/CSE切り替え） |
-| 4 | LLM推論ツールによる回答生成 | `tools.py` | ReasoningToolクラス（Gemini API呼び出し） |
+| 4 | LLM推論ツールによる回答生成 | `tools.py` | ReasoningToolクラス（**Anthropic Claude API** 呼び出し） |
 | 5 | ユーザー質問ツールによるHITLサポート | `tools.py` | AskUserToolクラス（Executor連携） |
 | 6 | ツールレジストリによるツールの一元管理 | `tools.py` | ToolRegistryクラスとcreate_tool_registry() |
 
@@ -118,10 +118,14 @@ flowchart TB
 
     subgraph EXTERNAL["外部サービス層"]
         QDRANT[(Qdrant Vector DB)]
-        GEMINI[Gemini API]
+        ANTHROPIC[Anthropic Claude API]
         SERPAPI[SerpAPI]
         DDG[DuckDuckGo]
         GCSE[Google CSE]
+    end
+
+    subgraph HELPER["ヘルパー層"]
+        HELPER_LLM[helper_llm\nAnthropicClient]
     end
 
     EXECUTOR --> REGISTRY
@@ -132,10 +136,30 @@ flowchart TB
     REGISTRY --> REASON
     REGISTRY --> ASKUSER
     RAG --> QDRANT
-    REASON --> GEMINI
+    REASON --> HELPER_LLM
+    HELPER_LLM --> ANTHROPIC
     WEB --> SERPAPI
     WEB --> DDG
     WEB --> GCSE
+
+    style EXECUTOR fill:#000,color:#fff
+    style API fill:#000,color:#fff
+    style CLI fill:#000,color:#fff
+    style REGISTRY fill:#000,color:#fff
+    style RAG fill:#000,color:#fff
+    style WEB fill:#000,color:#fff
+    style REASON fill:#000,color:#fff
+    style ASKUSER fill:#000,color:#fff
+    style QDRANT fill:#000,color:#fff
+    style ANTHROPIC fill:#000,color:#fff
+    style SERPAPI fill:#000,color:#fff
+    style DDG fill:#000,color:#fff
+    style GCSE fill:#000,color:#fff
+    style HELPER_LLM fill:#000,color:#fff
+    style CLIENT fill:#1a1a1a,stroke:#555
+    style MODULE fill:#1a1a1a,stroke:#555
+    style EXTERNAL fill:#1a1a1a,stroke:#555
+    style HELPER fill:#1a1a1a,stroke:#555
 ```
 
 ### 1.2 データフロー
@@ -155,7 +179,7 @@ flowchart TB
 **推論フロー**:
 1. Executor が `ToolRegistry.execute("reasoning", query=..., sources=...)` を呼び出し
 2. ReasoningTool がプロンプトを構築
-3. Gemini API に送信し回答を生成
+3. `helper_llm.AnthropicClient.generate_content()` で **Anthropic Claude API** に送信し回答を生成
 4. 生成結果を `ToolResult` として返却
 
 ---
@@ -202,16 +226,31 @@ flowchart TB
     WEB_CLS --> TR
     REASON_CLS --> TR
     ASK_CLS --> TR
+
+    style TR fill:#000,color:#fff
+    style BT fill:#000,color:#fff
+    style RAG_CLS fill:#000,color:#fff
+    style WEB_CLS fill:#000,color:#fff
+    style REASON_CLS fill:#000,color:#fff
+    style ASK_CLS fill:#000,color:#fff
+    style REG fill:#000,color:#fff
+    style CREATE fill:#000,color:#fff
+    style DATACLASS fill:#1a1a1a,stroke:#555
+    style ABSTRACT fill:#1a1a1a,stroke:#555
+    style TOOLS fill:#1a1a1a,stroke:#555
+    style REGISTRY_GRP fill:#1a1a1a,stroke:#555
+    style FACTORY fill:#1a1a1a,stroke:#555
 ```
 
 ### 2.2 外部依存関係
 
 | ライブラリ | バージョン | 用途 |
 |-----------|-----------|------|
-| `qdrant_client` | - | Qdrantベクトルデータベースクライアント |
-| `google-genai` | - | Gemini API クライアント |
-| `duckduckgo_search` | - | DuckDuckGo検索（WebSearchTool） |
-| `requests` | - | SerpAPI / Google CSE HTTP通信（WebSearchTool） |
+| `anthropic` | 0.x | Anthropic APIクライアント SDK（`helper_llm` 経由で使用） |
+| `helper_llm`（内部） | — | LLMクライアント抽象化。`create_llm_client("anthropic")` で `AnthropicClient` を生成 |
+| `qdrant_client` | — | Qdrantベクトルデータベースクライアント |
+| `duckduckgo_search` | — | DuckDuckGo検索（WebSearchTool） |
+| `requests` | — | SerpAPI / Google CSE HTTP通信（WebSearchTool） |
 | `dataclasses` | 標準 | データクラス定義 |
 | `abc` | 標準 | 抽象基底クラス |
 | `typing` | 標準 | 型ヒント |
@@ -238,7 +277,7 @@ flowchart TB
 |---------|------|
 | `config.qdrant.url` | Qdrant接続URL（デフォルト: http://localhost:6333） |
 | `config.qdrant.search_priority` | コレクション検索優先順位リスト |
-| `config.llm.model` | 使用するLLMモデル（デフォルト: gemini-3-flash-preview） |
+| `config.llm.model` | 使用するLLMモデル（デフォルト: `claude-sonnet-4-6`） |
 | `config.llm.temperature` | LLM生成時の温度 |
 | `config.llm.max_tokens` | 最大出力トークン数 |
 | `config.tools.enabled` | 有効なツールリスト |
@@ -307,7 +346,7 @@ flowchart TB
 
 | メソッド | 概要 |
 |---------|------|
-| `FUNCTION_DECLARATION` (class attr) | Gemini Function Calling用定義 |
+| `FUNCTION_DECLARATION` (class attr) | Anthropic Tool Use形式のツール定義（`"input_schema"` キー） |
 | `execute(question, reason, urgency, options)` | ユーザー質問実行 |
 
 #### ToolRegistry
@@ -647,7 +686,7 @@ def _calculate_confidence_factors(self, scores: List[float]) -> Dict[str, Any]
 
 #### コンストラクタ: `__init__`
 
-**概要**: ReasoningToolを初期化し、Gemini APIクライアントを設定します。
+**概要**: ReasoningToolを初期化し、**AnthropicClient**（`helper_llm.create_llm_client("anthropic")` 経由）を設定します。
 
 ```python
 def __init__(
@@ -665,7 +704,7 @@ def __init__(
 | 項目 | 内容 |
 |------|------|
 | **Input** | `config: Optional[GraceConfig]`, `model_name: Optional[str]` |
-| **Process** | 1. 設定を取得<br>2. モデル名を設定<br>3. Gemini Clientを初期化 |
+| **Process** | 1. 設定を取得<br>2. モデル名を設定<br>3. `create_llm_client("anthropic", default_model=self.model_name)` で **AnthropicClient** を初期化 |
 | **Output** | ReasoningToolインスタンス |
 
 ---
@@ -693,7 +732,7 @@ def execute(
 | 項目 | 内容 |
 |------|------|
 | **Input** | `query: str`, `context: Optional[str]`, `sources: Optional[List[Dict]]` |
-| **Process** | 1. プロンプトを構築<br>2. Gemini APIに送信<br>3. 回答を取得<br>4. トークン使用量を記録 |
+| **Process** | 1. プロンプトを構築（`_build_prompt`）<br>2. `llm.generate_content()` で **Anthropic Claude API** に送信し回答を生成（戻り値は `str` を直接返す）<br>3. 回答を取得<br>4. トークン使用量を記録（`generate_content()` は `str` 返却のため `token_usage` は常に空辞書） |
 | **Output** | `ToolResult`: 生成された回答 |
 
 **confidence_factors**:
@@ -778,19 +817,19 @@ def _build_prompt(
 
 #### クラス属性: `FUNCTION_DECLARATION`
 
-**概要**: Gemini Function Calling用のツール定義。
+**概要**: Anthropic Tool Use形式のツール定義。`"input_schema"` キーを使用（Gemini の `"parameters"` から変更）。
 
 ```python
 FUNCTION_DECLARATION = {
     "name": "ask_user_for_clarification",
     "description": "ユーザーに追加情報を求めるツール...",
-    "parameters": {
+    "input_schema": {
         "type": "object",
         "properties": {
-            "question": {"type": "string", "description": "ユーザーへの質問文"},
-            "reason": {"type": "string", "description": "なぜこの質問が必要か"},
-            "options": {"type": "array", "items": {"type": "string"}, "description": "選択肢"},
-            "urgency": {"type": "string", "enum": ["blocking", "optional"], "description": "緊急度"}
+            "question": {"type": "string", "description": "ユーザーへの質問文（明確かつ簡潔に）"},
+            "reason": {"type": "string", "description": "なぜこの質問が必要か（ユーザーに表示）"},
+            "options": {"type": "array", "items": {"type": "string"}, "description": "選択肢がある場合のリスト（任意）"},
+            "urgency": {"type": "string", "enum": ["blocking", "optional"], "description": "blocking: 回答がないと進めない, optional: 推測で進めることも可能"}
         },
         "required": ["question", "reason", "urgency"]
     }
@@ -1811,6 +1850,7 @@ __all__ = [
 | 1.0 | 初版作成（2025-01-29） |
 | 1.1 | 外部カスタムモジュール IPO詳細を追加（2025-01-29） |
 | 2.0 | WebSearchToolクラスのIPO詳細を追加（2026-02-19）: SerpAPI/DuckDuckGo/Google CSE対応、ToolRegistry登録、WebSearchConfig設定、Mermaidアーキテクチャ図更新、使用例追加 |
+| 3.0 | **Anthropic マイグレーション対応**（2026-04-28）: `genai.Client()` → `create_llm_client("anthropic")` による `AnthropicClient`。外部依存 `google-genai` → `anthropic` + `helper_llm`。`AskUserTool.FUNCTION_DECLARATION` の `"parameters"` キー → `"input_schema"` キー（Anthropic Tool Use形式）。`llm.model` デフォルト値を `claude-sonnet-4-6` に変更。全Mermaid図をノード黒背景・白文字スタイルに統一。 |
 
 ---
 
@@ -1829,9 +1869,13 @@ flowchart LR
 
     subgraph EXT["外部ライブラリ"]
         QC["qdrant_client"]
-        GENAI["google.genai"]
+        ANT["anthropic"]
         DDG_LIB["duckduckgo_search"]
         REQ["requests"]
+    end
+
+    subgraph HELPER_GRP["ヘルパー層"]
+        HELPER_LLM["helper_llm\nAnthropicClient"]
     end
 
     subgraph CUSTOM["カスタムモジュール"]
@@ -1847,8 +1891,31 @@ flowchart LR
 
     TOOLS --> STD
     TOOLS --> EXT
+    TOOLS --> HELPER_LLM
+    HELPER_LLM --> ANT
     TOOLS --> CUSTOM
     TOOLS --> CFG
+
+    style TOOLS fill:#000,color:#fff
+    style ABC_LIB fill:#000,color:#fff
+    style DC fill:#000,color:#fff
+    style TYPING fill:#000,color:#fff
+    style LOG fill:#000,color:#fff
+    style QC fill:#000,color:#fff
+    style ANT fill:#000,color:#fff
+    style DDG_LIB fill:#000,color:#fff
+    style REQ fill:#000,color:#fff
+    style HELPER_LLM fill:#000,color:#fff
+    style QCW fill:#000,color:#fff
+    style QS fill:#000,color:#fff
+    style AT fill:#000,color:#fff
+    style RM fill:#000,color:#fff
+    style CFG fill:#000,color:#fff
+    style STD fill:#1a1a1a,stroke:#555
+    style EXT fill:#1a1a1a,stroke:#555
+    style HELPER_GRP fill:#1a1a1a,stroke:#555
+    style CUSTOM fill:#1a1a1a,stroke:#555
+    style INTERNAL fill:#1a1a1a,stroke:#555
 ```
 
 ### ツール → 外部サービス連携図
@@ -1866,9 +1933,13 @@ flowchart TB
         ASK_T["AskUserTool"]
     end
 
+    subgraph HELPER_GRP["ヘルパー層"]
+        HELPER_LLM["helper_llm\nAnthropicClient"]
+    end
+
     subgraph SERVICES["外部サービス"]
         QDRANT_SVC[(Qdrant Server)]
-        GEMINI_SVC[Gemini API]
+        ANTHROPIC_SVC[Anthropic Claude API]
         SERPAPI_SVC[SerpAPI]
         DDG_SVC[DuckDuckGo]
         GCSE_SVC[Google CSE]
@@ -1882,7 +1953,23 @@ flowchart TB
     WEB_T --> SERPAPI_SVC
     WEB_T --> DDG_SVC
     WEB_T --> GCSE_SVC
-    REASON_T --> GEMINI_SVC
+    REASON_T --> HELPER_LLM
+    HELPER_LLM --> ANTHROPIC_SVC
+
+    style RAG_T fill:#000,color:#fff
+    style WEB_T fill:#000,color:#fff
+    style REASON_T fill:#000,color:#fff
+    style ASK_T fill:#000,color:#fff
+    style HELPER_LLM fill:#000,color:#fff
+    style QDRANT_SVC fill:#000,color:#fff
+    style ANTHROPIC_SVC fill:#000,color:#fff
+    style SERPAPI_SVC fill:#000,color:#fff
+    style DDG_SVC fill:#000,color:#fff
+    style GCSE_SVC fill:#000,color:#fff
+    style REG fill:#1a1a1a,stroke:#555
+    style TOOLS_GRP fill:#1a1a1a,stroke:#555
+    style HELPER_GRP fill:#1a1a1a,stroke:#555
+    style SERVICES fill:#1a1a1a,stroke:#555
 ```
 
 ---

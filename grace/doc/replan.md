@@ -94,6 +94,18 @@ flowchart TB
     MGR --> PLANNER_MOD
     MGR --> SCHEMAS
     MGR --> CONFIG
+
+    style EXECUTOR fill:#000,color:#fff
+    style UI fill:#000,color:#fff
+    style MON fill:#000,color:#fff
+    style ORCH fill:#000,color:#fff
+    style MGR fill:#000,color:#fff
+    style PLANNER_MOD fill:#000,color:#fff
+    style SCHEMAS fill:#000,color:#fff
+    style CONFIG fill:#000,color:#fff
+    style CLIENT fill:#1a1a1a,stroke:#555
+    style MODULE fill:#1a1a1a,stroke:#555
+    style EXTERNAL fill:#1a1a1a,stroke:#555
 ```
 
 ### 1.2 データフロー
@@ -168,6 +180,39 @@ flowchart TB
     PARTIAL --> ADJUST
     DET --> FIND
     FALLBACK --> CHAIN
+
+    style RT fill:#000,color:#fff
+    style RS fill:#000,color:#fff
+    style RC fill:#000,color:#fff
+    style RR fill:#000,color:#fff
+    style INIT_M fill:#000,color:#fff
+    style SHOULD fill:#000,color:#fff
+    style SHOULD_FB fill:#000,color:#fff
+    style DET fill:#000,color:#fff
+    style CREATE fill:#000,color:#fff
+    style FULL fill:#000,color:#fff
+    style PARTIAL fill:#000,color:#fff
+    style FALLBACK fill:#000,color:#fff
+    style CHAIN fill:#000,color:#fff
+    style SKIP fill:#000,color:#fff
+    style ENHANCE fill:#000,color:#fff
+    style REMAIN fill:#000,color:#fff
+    style ADJUST fill:#000,color:#fff
+    style FIND fill:#000,color:#fff
+    style CAN fill:#000,color:#fff
+    style HIST fill:#000,color:#fff
+    style CLR fill:#000,color:#fff
+    style GET_P fill:#000,color:#fff
+    style INIT_O fill:#000,color:#fff
+    style HSF fill:#000,color:#fff
+    style HUF fill:#000,color:#fff
+    style CRM fill:#000,color:#fff
+    style CRO fill:#000,color:#fff
+    style ENUMS fill:#1a1a1a,stroke:#555
+    style DATA fill:#1a1a1a,stroke:#555
+    style MGR_CLS fill:#1a1a1a,stroke:#555
+    style ORCH_CLS fill:#1a1a1a,stroke:#555
+    style FACTORY fill:#1a1a1a,stroke:#555
 ```
 
 ### 2.2 外部依存関係
@@ -1442,4 +1487,24 @@ flowchart LR
     CONFIG --> C1["get_config()"]
     CONFIG --> C2[GraceConfig]
     CONFIG --> C3[ReplanConfig]
+
+    style REPLAN fill:#000,color:#fff
+    style LOGGING fill:#000,color:#fff
+    style DATACLASSES fill:#000,color:#fff
+    style TYPING fill:#000,color:#fff
+    style ENUM fill:#000,color:#fff
+    style DATETIME fill:#000,color:#fff
+    style SCHEMAS fill:#000,color:#fff
+    style PLANNER fill:#000,color:#fff
+    style CONFIG fill:#000,color:#fff
+    style S1 fill:#000,color:#fff
+    style S2 fill:#000,color:#fff
+    style S3 fill:#000,color:#fff
+    style P1 fill:#000,color:#fff
+    style P2 fill:#000,color:#fff
+    style C1 fill:#000,color:#fff
+    style C2 fill:#000,color:#fff
+    style C3 fill:#000,color:#fff
+    style STDLIB fill:#1a1a1a,stroke:#555
+    style INTERNAL fill:#1a1a1a,stroke:#555
 ```

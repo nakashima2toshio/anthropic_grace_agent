@@ -11,7 +11,7 @@ Migration: Gemini → Anthropic (2026-04-20)
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Type, List, Dict, Tuple
+from typing import Any, Optional, Type, List, Dict, Tuple, NamedTuple
 import os
 import json
 import logging
@@ -159,6 +159,55 @@ EMBEDDING_DIMS = {
 # [MIGRATION] デフォルトプロバイダーを "gemini" → "anthropic" に変更
 # 環境変数 LLM_PROVIDER で切り替え可能（gemini_grace_agent は LLM_PROVIDER=gemini を設定）
 DEFAULT_LLM_PROVIDER = os.getenv("LLM_PROVIDER", "anthropic")
+
+
+# ================================================================
+# generate_with_tools() 戻り値型
+# ================================================================
+
+class ToolUseResponse(NamedTuple):
+    """
+    AnthropicClient.generate_with_tools() の戻り値。
+
+    Attributes:
+        text (str):
+            LLM のテキスト応答。複数の text ブロックがある場合は空白で結合済み。
+            ツール呼び出しのみのターンでは空文字列になることがある。
+        tool_calls (List[dict]):
+            ツール呼び出しリスト。各要素は以下のキーを持つ dict。
+              - "name"  (str): ツール名
+              - "input" (dict): ツール引数
+              - "id"    (str): ツール呼び出し ID（tool_result 送信時に必須）
+            ツール呼び出しがない場合は空リスト。
+        stop_reason (str):
+            API の停止理由。
+              - "tool_use"      : ツール呼び出しあり → ループ継続
+              - "end_turn"      : 通常終了 → ループ終了
+              - "max_tokens"    : トークン上限 → ループ終了
+              - "stop_sequence" : ストップシーケンス一致 → ループ終了
+        assistant_message (dict):
+            {"role": "assistant", "content": response.content} 形式のメッセージ。
+            response.content は Anthropic SDK の ContentBlock リストをそのまま保持しており、
+            ブロックの順序・構造が完全に維持される。
+            呼び出し側は再構築せずに self._messages.append(result.assistant_message) で
+            直接会話履歴に追記できる。
+
+    Usage:
+        result = llm.generate_with_tools(messages, tools, system)
+
+        # 名前付きアクセス（推奨）
+        if result.stop_reason != "tool_use" or not result.tool_calls:
+            final_text = result.text
+            break
+        self._messages.append(result.assistant_message)
+
+        # タプルとしてアンパック（後方互換）
+        text, tool_calls, stop_reason, assistant_msg = result
+    """
+    text: str
+    tool_calls: List[Dict[str, Any]]
+    stop_reason: str
+    assistant_message: Dict[str, Any]
 
 
 # ================================================================
@@ -494,48 +543,48 @@ class AnthropicClient(LLMClient):
         system: str = "",
         model: Optional[str] = None,
         max_tokens: int = 4096,
-    ) -> Tuple[str, List[Dict[str, Any]], str]:
+    ) -> "ToolUseResponse":
         """
         Tool Use を含む ReAct ループの 1 ステップを実行する。
-
-        Gemini 版との差異：
-          - ツール定義: types.Tool(function_declarations) → dict リスト
-          - ツール呼び出し検出: parts の function_call → stop_reason == "tool_use"
-          - ツール結果: contents に追加 → messages に tool_result ロールで追加
 
         Args:
             messages: 会話履歴（Anthropic messages 形式）
                       例: [{"role": "user", "content": "..."}, ...]
             tools: ツール定義リスト
                    例: [{"name": "search", "description": "...", "input_schema": {...}}]
+                   Reflection フェーズなどツールが不要な場合は [] を渡す。
             system: システムプロンプト
-            model: 使用モデル
+            model: 使用モデル（省略時は default_model）
             max_tokens: 最大出力トークン数
 
         Returns:
-            Tuple of:
-              - text (str): モデルのテキスト応答（tool_use 以外の content）
-              - tool_calls (List[dict]): ツール呼び出しリスト
-                  例: [{"name": "search", "input": {"query": "..."}, "id": "toolu_xxx"}]
-              - stop_reason (str): "tool_use" | "end_turn" | "max_tokens" | "stop_sequence"
+            ToolUseResponse (NamedTuple):
+                .text            — テキスト応答（複数 text ブロックは空白結合済み）
+                .tool_calls      — ツール呼び出しリスト [{"name","input","id"}, ...]
+                .stop_reason     — "tool_use" | "end_turn" | "max_tokens" | "stop_sequence"
+                .assistant_message — {"role":"assistant","content": response.content}
+                                     呼び出し側は再構築せず直接 messages に追記可能。
 
-        Usage (ReAct loop の例):
+        Usage (ReAct ループの典型パターン):
             messages = [{"role": "user", "content": query}]
             while True:
-                text, tool_calls, stop_reason = llm.generate_with_tools(
-                    messages, tools, system
-                )
-                if stop_reason == "end_turn" or not tool_calls:
+                result = llm.generate_with_tools(messages, tools, system)
+
+                if result.stop_reason != "tool_use" or not result.tool_calls:
+                    final_text = result.text
                     break
-                # ツールを実行して結果を messages に追加
-                messages.append({"role": "assistant", "content": response.content})
+
+                # assistant ターンを履歴に追記（再構築不要）
+                messages.append(result.assistant_message)
+
+                # ツールを実行して tool_result を追記
                 tool_results = []
-                for tc in tool_calls:
-                    result = execute_tool(tc["name"], tc["input"])
+                for tc in result.tool_calls:
+                    result_str = execute_tool(tc["name"], tc["input"])
                     tool_results.append({
-                        "type"      : "tool_result",
+                        "type"       : "tool_result",
                         "tool_use_id": tc["id"],
-                        "content"   : str(result),
+                        "content"    : result_str,
                     })
                 messages.append({"role": "user", "content": tool_results})
         """
@@ -568,7 +617,19 @@ class AnthropicClient(LLMClient):
             b.text for b in response.content if b.type == "text"
         )
 
-        return text, tool_calls, response.stop_reason
+        # response.content をそのまま保持した assistant メッセージを構築
+        # 呼び出し側での再構築を不要にし、ブロック順序・構造を完全に維持する
+        assistant_message: Dict[str, Any] = {
+            "role"   : "assistant",
+            "content": response.content,
+        }
+
+        return ToolUseResponse(
+            text=text,
+            tool_calls=tool_calls,
+            stop_reason=response.stop_reason,
+            assistant_message=assistant_message,
+        )
 
     # ----------------------------------------------------------
     # ユーティリティ

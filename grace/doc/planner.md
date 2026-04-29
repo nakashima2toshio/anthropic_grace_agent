@@ -1,6 +1,8 @@
 ## planner.py - GRACE計画生成エージェント ドキュメント
 
-**Version 3.0** | 最終更新: 2026-02-19
+**Version 4.0** | 最終更新: 2026-04-28
+
+> **[2026-04-28 更新]** Gemini API → **Anthropic Claude API** マイグレーション対応。AFC関連コード・空レスポンスガード・JSON完全性チェックを全廃。Tool Use による構造化出力に移行。
 
 ---
 
@@ -46,7 +48,7 @@
 ### 主な責務
 
 - ユーザークエリの複雑度推定（キーワードベース / LLMベース）
-- LLMを用いた実行計画の自動生成（Gemini API + 構造化出力）
+- LLMを用いた実行計画の自動生成（**Anthropic Claude API + Tool Use による構造化出力**）
 - 利用可能なコレクション（Qdrant）の動的取得
 - フィードバックに基づく計画の修正（リファインメント）
 - フォールバック計画の提供（LLM失敗時の安全な代替）
@@ -56,7 +58,7 @@
 | # | 責務 | 対応モジュール | 説明 |
 |---|------|--------------|------|
 | 1 | ユーザークエリの複雑度推定 | `planner.py` | キーワード/LLMベースの複雑度分析 |
-| 2 | LLMを用いた実行計画の自動生成 | `planner.py` | Gemini APIで`ExecutionPlan`スキーマに基づく構造化出力で計画を生成 |
+| 2 | LLMを用いた実行計画の自動生成 | `planner.py` | **Anthropic Claude API** の `generate_structured()`（Tool Use）で`ExecutionPlan`インスタンスを直接生成 |
 | 3 | 利用可能なコレクションの動的取得 | `qdrant_service.py` | Qdrantから動的にコレクション一覧を取得 |
 | 4 | フィードバックに基づく計画の修正 | `planner.py` | ユーザーフィードバックに応じてLLMでリファインメント |
 | 5 | フォールバック計画の提供 | `planner.py` | LLMエラー時の安全な代替計画（動的コレクション検索→reasoning、fallbackはweb_search） |
@@ -66,14 +68,14 @@
 | 機能 | 説明 |
 |------|------|
 | `Planner` | 計画生成エージェントクラス |
-| `Planner.__init__()` | コンストラクタ（設定・モデル名指定、KeywordExtractor初期化） |
-| `Planner.create_plan()` | LLMを使用して実行計画を生成（構造化出力、AFC無効化、最大2回リトライ、JSON完全性チェック） |
+| `Planner.__init__()` | コンストラクタ（設定・モデル名指定、**AnthropicClient**初期化、KeywordExtractor初期化） |
+| `Planner.create_plan()` | LLMを使用して実行計画を生成（**Tool Use経由の構造化出力**、最大2回リトライ） |
 | `Planner._create_plan_legacy()` | Legacy Agent委譲用の単純計画生成（バックアップ） |
 | `Planner._get_available_collections()` | Qdrantからコレクション一覧を取得 |
 | `Planner._create_fallback_plan()` | フォールバック用の単純計画生成 |
 | `Planner.estimate_complexity()` | キーワードベースで複雑度を推定 |
-| `Planner.estimate_complexity_with_llm()` | LLMで複雑度を推定（AFC無効化、Noneガード付き） |
-| `Planner.refine_plan()` | フィードバックに基づき計画を修正（AFC無効化） |
+| `Planner.estimate_complexity_with_llm()` | LLMで複雑度を推定（Noneガード付き） |
+| `Planner.refine_plan()` | フィードバックに基づき計画を修正（**Tool Use経由の構造化出力**） |
 | `create_planner()` | Plannerインスタンスを作成するファクトリ関数 |
 
 ---
@@ -97,8 +99,12 @@ flowchart TB
 
     subgraph EXTERNAL["外部サービス層"]
         QDRANT[(Qdrant Server\n:6333)]
-        GEMINI[Gemini API\nLLM]
+        ANTHROPIC[Anthropic Claude API\nclaude-sonnet-4-6]
         MECAB[MeCab/Regex\nKeyword]
+    end
+
+    subgraph HELPER["ヘルパー層"]
+        HELPER_LLM[helper_llm\nAnthropicClient]
     end
 
     STREAMLIT --> MODULE
@@ -106,7 +112,8 @@ flowchart TB
     CLI --> MODULE
     FACTORY --> PLANNER
     PLANNER --> QDRANT
-    PLANNER --> GEMINI
+    PLANNER --> HELPER_LLM
+    HELPER_LLM --> ANTHROPIC
     PLANNER --> MECAB
 ```
 
@@ -115,7 +122,7 @@ flowchart TB
 1. クライアント層からユーザークエリを受信
 2. Qdrantから利用可能なコレクション一覧を動的取得
 3. LLMで質問の複雑度を推定（失敗時はキーワードベースにフォールバック）
-4. プロンプトを構築しGemini APIで構造化出力（`response_schema=ExecutionPlan`）により計画を生成（最大2回リトライ、JSON完全性チェック付き）
+4. プロンプトを構築し **Anthropic Claude API** の `generate_structured()`（Tool Use）で構造化出力。`ExecutionPlan` インスタンスが直接返る（最大2回リトライ）
 5. `ExecutionPlan`オブジェクトをExecutorに返却
 
 ---
@@ -129,18 +136,18 @@ flowchart TB
     subgraph CONST["定数・設定"]
         PROMPT["PLAN_GENERATION_PROMPT"]
         COMPLEXITY_P["COMPLEXITY_ESTIMATION_PROMPT"]
-        SEARCH_INST["SEARCH_QUERY_INSTRUCTION<br/>※services.promptsから参照"]
+        SEARCH_INST["SEARCH_QUERY_INSTRUCTION\n※services.promptsから参照"]
     end
 
     subgraph PLANNER_CLS["Planner クラス"]
-        INIT["__init__<br/>+ KeywordExtractor"]
-        CREATE["create_plan<br/>AFC無効化・構造化出力<br/>リトライ付き・JSON検証"]
+        INIT["__init__\n+ AnthropicClient初期化\n+ KeywordExtractor"]
+        CREATE["create_plan\nTool Use構造化出力\nリトライ付き"]
         LEGACY["_create_plan_legacy"]
         GET_COLL["_get_available_collections"]
         FALLBACK["_create_fallback_plan"]
         EST["estimate_complexity"]
-        EST_LLM["estimate_complexity_with_llm<br/>AFC無効化・Noneガード"]
-        REFINE["refine_plan<br/>AFC無効化"]
+        EST_LLM["estimate_complexity_with_llm\nNoneガード"]
+        REFINE["refine_plan\nTool Use構造化出力"]
     end
 
     subgraph FACTORY_GRP["ファクトリ関数"]
@@ -163,7 +170,8 @@ flowchart TB
 
 | ライブラリ | バージョン | 用途 |
 |-----------|-----------|------|
-| `google-genai` | 1.x | Gemini APIクライアント（構造化出力、AFC制御） |
+| `anthropic` | 0.x | Anthropic APIクライアント SDK（`helper_llm` 経由で使用） |
+| `helper_llm`（内部） | — | LLMクライアント抽象化レイヤー。`create_llm_client("anthropic")` で `AnthropicClient` を生成 |
 | `qdrant-client` | 1.x | Qdrant接続 |
 | `pydantic` | 2.x | データモデル検証（GraceConfig、ExecutionPlan） |
 
@@ -171,6 +179,7 @@ flowchart TB
 
 | モジュール | 用途 |
 |-----------|------|
+| `helper_llm` | `create_llm_client("anthropic")` → `AnthropicClient`（`generate_content`, `generate_structured`） |
 | `grace.schemas` | ExecutionPlan, PlanStep, create_plan_id, validate_plan_dependencies |
 | `grace.config` | GraceConfig設定管理、get_config() |
 | `services.qdrant_service` | get_all_collections()によるコレクション取得 |
@@ -187,14 +196,14 @@ flowchart TB
 
 | メソッド | 概要 |
 |---------|------|
-| `__init__(config, model_name)` | コンストラクタ（設定・モデル名指定、KeywordExtractor初期化） |
-| `create_plan(query)` | LLMを使用して実行計画を生成（構造化出力、AFC無効化、最大2回リトライ、JSON完全性チェック） |
+| `__init__(config, model_name)` | コンストラクタ（設定・モデル名指定、**AnthropicClient**初期化、KeywordExtractor初期化） |
+| `create_plan(query)` | LLMを使用して実行計画を生成（**Tool Use経由の構造化出力**、最大2回リトライ） |
 | `_create_plan_legacy(query)` | Legacy Agent委譲用の単純計画生成 |
 | `_get_available_collections()` | Qdrantからコレクション一覧を取得 |
 | `_create_fallback_plan(query)` | フォールバック用の単純計画生成 |
 | `estimate_complexity(query)` | キーワードベースで複雑度を推定 |
-| `estimate_complexity_with_llm(query)` | LLMで複雑度を推定（AFC無効化、Noneガード） |
-| `refine_plan(plan, feedback)` | フィードバックに基づき計画を修正（AFC無効化） |
+| `estimate_complexity_with_llm(query)` | LLMで複雑度を推定（Noneガード） |
+| `refine_plan(plan, feedback)` | フィードバックに基づき計画を修正（**Tool Use経由の構造化出力**） |
 
 ### 3.2 関数一覧（カテゴリ別）
 
@@ -214,7 +223,7 @@ flowchart TB
 
 #### コンストラクタ: `__init__`
 
-**概要**: Plannerインスタンスを初期化します。設定オブジェクトとモデル名を受け取り、Gemini APIクライアントとKeywordExtractor（MeCab優先）を初期化します。
+**概要**: Plannerインスタンスを初期化します。設定オブジェクトとモデル名を受け取り、**AnthropicClient**（`helper_llm.create_llm_client("anthropic")` 経由）とKeywordExtractor（MeCab優先）を初期化します。
 
 ```python
 Planner(
@@ -231,7 +240,7 @@ Planner(
 | 項目 | 内容 |
 |------|------|
 | **Input** | `config: Optional[GraceConfig] = None`, `model_name: Optional[str] = None` |
-| **Process** | 1. 設定オブジェクトの取得（デフォルトまたは指定）<br>2. モデル名の決定（指定またはconfig.llm.model）<br>3. Gemini APIクライアント（genai.Client）の初期化<br>4. KeywordExtractorの初期化（MeCab優先、失敗時はNoneを設定しWARNINGログ出力） |
+| **Process** | 1. 設定オブジェクトの取得（デフォルトまたは指定）<br>2. モデル名の決定（指定またはconfig.llm.model）<br>3. **`create_llm_client("anthropic", default_model=self.model_name)` で `AnthropicClient` を初期化**<br>4. KeywordExtractorの初期化（MeCab優先、失敗時はNoneを設定しWARNINGログ出力） |
 | **Output** | Plannerインスタンス |
 
 ```python
@@ -244,14 +253,14 @@ planner = Planner()
 
 # カスタム設定で初期化
 config = get_config("config/custom.yml")
-planner = Planner(config=config, model_name="gemini-3-flash-preview")
+planner = Planner(config=config, model_name="claude-sonnet-4-6")
 ```
 
 ---
 
 #### メソッド: `create_plan`
 
-**概要**: 質問から実行計画を生成します（LLM使用版）。利用可能なコレクションを取得し、複雑度を推定した上で、Gemini APIの構造化出力（`response_schema=ExecutionPlan`）を使用してJSON形式の計画を生成します。AFC（Automatic Function Calling）は明示的に無効化されています。リトライロジック（最大2回）とJSON完全性チェックを実装し、空レスポンスや不完全JSONからの耐障害性を強化しています。
+**概要**: 質問から実行計画を生成します（LLM使用版）。利用可能なコレクションを取得し、複雑度を推定した上で、**Anthropic Claude API の `generate_structured()`（Tool Use）** を使用して `ExecutionPlan` インスタンスを直接生成します。リトライロジック（最大2回）を実装し、API呼び出し失敗時の耐障害性を確保しています。空レスポンスガード・JSON完全性チェックは Tool Use により不要です。
 
 ```python
 def create_plan(self, query: str) -> ExecutionPlan
@@ -264,10 +273,10 @@ def create_plan(self, query: str) -> ExecutionPlan
 | 項目 | 内容 |
 |------|------|
 | **Input** | `query: str` |
-| **Process** | 1. 利用可能なコレクションをQdrantから取得（`_get_available_collections`）<br>2. LLMで複雑度を推定（`estimate_complexity_with_llm`）<br>3. `PLAN_GENERATION_PROMPT`にコレクション情報＋クエリを埋め込みプロンプト構築<br>4. IPOログにINPUTを出力<br>5. **リトライループ（最大2回）で以下を実行:**<br>&nbsp;&nbsp;5a. Gemini APIで構造化出力（`response_schema=ExecutionPlan`, `max_output_tokens=8192`, AFC無効化）<br>&nbsp;&nbsp;5b. API応答時間を計測・ログ出力<br>&nbsp;&nbsp;5c. IPOログにOUTPUTを出力<br>&nbsp;&nbsp;5d. 空レスポンスガード（`response.text`が空なら`continue`）<br>&nbsp;&nbsp;5e. JSON完全性チェック（`json.loads()`で検証、失敗なら`continue`）<br>&nbsp;&nbsp;5f. `ExecutionPlan.model_validate_json(response.text)`でパース<br>6. 事前推定した複雑度を`plan.complexity`に上書き<br>7. `create_plan_id()`で計画IDを設定<br>8. `validate_plan_dependencies()`で依存関係を検証（エラーは警告のみ）<br>9. 全リトライ失敗時は`_create_fallback_plan()`を返却 |
+| **Process** | 1. 利用可能なコレクションをQdrantから取得（`_get_available_collections`）<br>2. LLMで複雑度を推定（`estimate_complexity_with_llm`）<br>3. `PLAN_GENERATION_PROMPT`にコレクション情報＋クエリを埋め込みプロンプト構築<br>4. IPOログにINPUTを出力<br>5. **リトライループ（最大2回）で以下を実行:**<br>&nbsp;&nbsp;5a. `llm.generate_structured(response_schema=ExecutionPlan, max_tokens=8192, system=..., temperature=...)` でTool Use経由の構造化出力。`ExecutionPlan` インスタンスが直接返る<br>&nbsp;&nbsp;5b. API応答時間を計測・ログ出力<br>&nbsp;&nbsp;5c. IPOログにOUTPUTを出力<br>6. 事前推定した複雑度を`plan.complexity`に上書き<br>7. `create_plan_id()`で計画IDを設定<br>8. `validate_plan_dependencies()`で依存関係を検証（エラーは警告のみ）<br>9. 全リトライ失敗時は`_create_fallback_plan()`を返却 |
 | **Output** | `ExecutionPlan`: 実行計画オブジェクト |
 
-> 📝 **注意**: `automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)` を設定し、AFC永続化によるJSON mode空レスポンスバグを防止しています（See: [python-genai#1818](https://github.com/googleapis/python-genai/issues/1818)）。
+> 📝 **Anthropic Tool Use について**: `generate_structured()` は内部で Pydantic の `model_json_schema()` をツール定義として渡し、`tool_choice="tool"` で構造化出力を強制します。`tool_use` ブロックの `input` を `model_validate()` でパースして `ExecutionPlan` インスタンスを返します。Gemini の AFC とは異なり、空レスポンス・不完全JSON は発生しません。
 
 **戻り値例**:
 ```python
@@ -285,7 +294,7 @@ ExecutionPlan(
             query="『金色夜叉』の作者は誰ですか？",
             collection=None,
             expected_output="関連するドキュメント",
-            fallback="reasoning"
+            fallback="web_search"
         ),
         PlanStep(
             step_id=2,
@@ -423,7 +432,7 @@ ExecutionPlan(
             query="質問文",
             collection="wikipedia_ja",  # 動的取得。該当なしの場合はNone
             expected_output="関連するドキュメントや情報",
-            fallback="web_search"  # v3.0: reasoning → web_search に変更
+            fallback="web_search"
         ),
         PlanStep(
             step_id=2,
@@ -490,7 +499,7 @@ print(f"複雑度: {complexity}")
 
 #### メソッド: `estimate_complexity_with_llm`
 
-**概要**: LLMを使用して質問の複雑度を推定します。`COMPLEXITY_ESTIMATION_PROMPT`を使用してGemini APIに複雑度を問い合わせます。AFC（Automatic Function Calling）は明示的に無効化されています。レスポンスのNoneガードを実装し、空レスポンス時はキーワードベースの`estimate_complexity()`にフォールバックします。
+**概要**: LLMを使用して質問の複雑度を推定します。`COMPLEXITY_ESTIMATION_PROMPT`を使用して **Anthropic Claude API** に複雑度を問い合わせます（`generate_content()` 経由）。レスポンスのNoneガードを実装し、空レスポンス時はキーワードベースの`estimate_complexity()`にフォールバックします。
 
 ```python
 def estimate_complexity_with_llm(self, query: str) -> float
@@ -503,10 +512,10 @@ def estimate_complexity_with_llm(self, query: str) -> float
 | 項目 | 内容 |
 |------|------|
 | **Input** | `query: str` |
-| **Process** | 1. `COMPLEXITY_ESTIMATION_PROMPT`にクエリを埋め込み<br>2. Gemini API呼び出し（`temperature=0.1`, `max_output_tokens=10`, AFC無効化）<br>3. API応答時間を計測・ログ出力<br>4. レスポンスのNoneガード（空レスポンス時は`estimate_complexity()`にフォールバック）<br>5. 数値をパースし0.0-1.0にクランプ<br>6. 例外発生時は`estimate_complexity()`にフォールバック |
+| **Process** | 1. `COMPLEXITY_ESTIMATION_PROMPT`にクエリを埋め込み<br>2. `llm.generate_content(temperature=0.1, max_tokens=10)` で **Anthropic Claude API** 呼び出し<br>3. API応答時間を計測・ログ出力<br>4. レスポンスのNoneガード（空レスポンス時は`estimate_complexity()`にフォールバック）<br>5. 数値をパースし0.0-1.0にクランプ<br>6. 例外発生時は`estimate_complexity()`にフォールバック |
 | **Output** | `float`: 複雑度スコア（0.0-1.0） |
 
-> 📝 **注意**: AFC永続化により`response.text`がNoneになるケースがあるため、Noneガードを実装しています。
+> 📝 **注意**: `generate_content()` は `str` を直接返します。念のためNoneガードを実装していますが、通常は発生しません。
 
 **複雑度の目安**:
 
@@ -534,7 +543,7 @@ print(f"複雑度（LLM推定）: {complexity}")
 
 #### メソッド: `refine_plan`
 
-**概要**: フィードバックに基づいて計画を修正します。元の計画情報とユーザーフィードバックからプロンプトを構築し、Gemini APIの構造化出力（`response_schema=ExecutionPlan`）で修正計画を生成します。AFC（Automatic Function Calling）は明示的に無効化されています。
+**概要**: フィードバックに基づいて計画を修正します。元の計画情報とユーザーフィードバックからプロンプトを構築し、**Anthropic Claude API の `generate_structured()`（Tool Use）** で修正計画を生成します。`ExecutionPlan` インスタンスが直接返ります。
 
 ```python
 def refine_plan(
@@ -552,7 +561,7 @@ def refine_plan(
 | 項目 | 内容 |
 |------|------|
 | **Input** | `plan: ExecutionPlan`, `feedback: str` |
-| **Process** | 1. 元の計画情報（クエリ、ステップ数、ステップ説明一覧）とフィードバックからプロンプト構築<br>2. Gemini APIで構造化出力（`response_schema=ExecutionPlan`, AFC無効化）<br>3. API応答時間を計測・ログ出力<br>4. `ExecutionPlan.model_validate_json(response.text)`でパース<br>5. `create_plan_id()`で新しい計画IDを設定<br>6. 失敗時は元の計画をそのまま返却 |
+| **Process** | 1. 元の計画情報（クエリ、ステップ数、ステップ説明一覧）とフィードバックからプロンプト構築<br>2. `llm.generate_structured(response_schema=ExecutionPlan, max_tokens=4096, system=..., temperature=...)` で Tool Use経由の構造化出力。`ExecutionPlan` インスタンスが直接返る<br>3. API応答時間を計測・ログ出力<br>4. `create_plan_id()`で新しい計画IDを設定<br>5. 失敗時は元の計画をそのまま返却 |
 | **Output** | `ExecutionPlan`: 修正された計画 |
 
 **戻り値例**:
@@ -607,7 +616,7 @@ def create_planner(
 
 **戻り値例**:
 ```python
-<Planner instance with model=gemini-3-flash-preview>
+<Planner instance with model=claude-sonnet-4-6>
 ```
 
 ```python
@@ -620,7 +629,7 @@ planner = create_planner()
 # カスタム設定で作成
 from grace.config import get_config
 config = get_config("config/production.yml")
-planner = create_planner(config=config, model_name="gemini-3-flash-preview")
+planner = create_planner(config=config, model_name="claude-sonnet-4-6")
 ```
 
 ---
@@ -661,10 +670,12 @@ PLAN_GENERATION_PROMPT = f"""
 4. 失敗時の代替手段（fallback）を検討してください。
 5. 最後のステップは必ず "reasoning" で回答を生成してください
 6. rag_search と web_search の使い分け:
-    * 社内ドキュメント・FAQ・ナレッジベースの情報 → rag_search
-    * 最新ニュース・外部Web情報・一般知識 → web_search
-    * RAGに情報がない可能性がある場合 → rag_search（fallbackに"web_search"を指定）
-    * 両方必要な場合 → rag_search → web_search → reasoning の3ステップ
+    * 計画には web_search ステップを含めないでください
+    * web_search は、rag_search の結果が不十分な場合に executor が自動的に実行します
+    * 計画は常に rag_search → reasoning の2ステップ構成としてください
+    * rag_search の fallback には "web_search" を指定してください
+    * 例外: ユーザーが明示的に「最新ニュースを検索して」等と指示した場合のみ、
+      web_search 単体のステップを計画に含めてよい
 
 {SEARCH_QUERY_INSTRUCTION}
 
@@ -721,8 +732,8 @@ Plannerで使用されるGraceConfigの設定項目：
 
 | 設定パス | 型 | デフォルト | 説明 |
 |---------|-----|----------|------|
-| `llm.provider` | str | `"gemini"` | LLMプロバイダー |
-| `llm.model` | str | 設定ファイル依存 | 使用するLLMモデル |
+| `llm.provider` | str | `"anthropic"` | LLMプロバイダー（マイグレーション後） |
+| `llm.model` | str | `"claude-sonnet-4-6"` | 使用するLLMモデル（マイグレーション後） |
 | `llm.temperature` | float | `0.7` | 生成時の温度パラメータ（create_plan, refine_planで使用） |
 | `llm.max_tokens` | int | `4096` | 最大出力トークン数（参考値。create_planは8192を明示指定） |
 | `llm.timeout` | int | `30` | タイムアウト秒数 |
@@ -779,7 +790,7 @@ from grace.config import get_config
 config = get_config("config/production.yml")
 
 # 特定のモデルを指定してPlannerを作成
-planner = create_planner(config=config, model_name="gemini-3-flash-preview")
+planner = create_planner(config=config, model_name="claude-sonnet-4-6")
 
 # 複雑な質問の計画を生成
 plan = planner.create_plan("量子コンピュータの原理と従来のコンピュータとの違いを説明してください")
@@ -857,6 +868,7 @@ __all__ = [
 | 1.3 | ドキュメント改修: ASCII図をMermaid v9フローチャートに変更、GraceConfig設定情報を詳細化 |
 | 2.0 | コード改修に伴う全面更新: PLAN_GENERATION_PROMPT拡張（コレクション選択ルール・検索クエリ作成ルール・複雑度目安・requires_confirmation条件・SEARCH_QUERY_INSTRUCTION埋め込み）、全LLM呼び出し箇所にAFC無効化追加、create_planにIPOログ出力・API時間計測・max_output_tokens=8192を追加、estimate_complexity_with_llmにNoneガード・API時間計測を追加、refine_planにAPI時間計測を追加、フォーマット仕様v1.4準拠（各責務対応のモジュール テーブル追加） |
 | 3.0 | コード改修に伴う更新: PLAN_GENERATION_PROMPTにweb_searchアクション追加・ルール6（rag_search/web_search使い分け）追加、create_planにリトライロジック（最大2回）・JSON完全性チェック・空レスポンスガードを追加、_create_fallback_planを動的コレクション選択に変更・fallbackをreasoning→web_searchに変更 |
+| 4.0 | **Gemini → Anthropic マイグレーション対応**: `genai.Client()` → `AnthropicClient`（`helper_llm.create_llm_client("anthropic")` 経由）。`generate_content()` / `generate_structured()`（Tool Use）に移行。AFC無効化コード・空レスポンスガード・JSON完全性チェック・`model_validate_json(response.text)` を全廃。デフォルトモデルを `claude-sonnet-4-6` に変更。外部依存を `google-genai` → `anthropic` + `helper_llm` に変更。 |
 
 ---
 
@@ -866,9 +878,16 @@ __all__ = [
 flowchart LR
     PLANNER[planner.py]
 
-    subgraph GOOGLE["google-genai"]
-        GENAI[genai.Client]
-        TYPES[genai.types.GenerateContentConfig\ngenai.types.AutomaticFunctionCallingConfig]
+    subgraph ANTHROPIC_SDK["anthropic（SDK）"]
+        ANT_CLIENT[anthropic.Anthropic]
+    end
+
+    subgraph HELPER["helper_llm（内部）"]
+        HELPER_LLM[create_llm_client\nAnthropicClient]
+        GEN_CONTENT[generate_content\nstr直接返却]
+        GEN_STRUCT[generate_structured\nTool Use経由\nBaseModel直接返却]
+        HELPER_LLM --> GEN_CONTENT
+        HELPER_LLM --> GEN_STRUCT
     end
 
     subgraph QDRANT["qdrant-client"]
@@ -883,8 +902,8 @@ flowchart LR
         REGEX[regex_mecab]
     end
 
-    PLANNER --> GENAI
-    PLANNER --> TYPES
+    PLANNER --> HELPER_LLM
+    HELPER_LLM --> ANT_CLIENT
     PLANNER --> QC
     PLANNER --> SCHEMAS
     PLANNER --> CONFIG
@@ -915,11 +934,9 @@ flowchart LR
 
 | 状況 | 動作 | ログレベル |
 |-----|------|----------|
-| Gemini API呼び出し失敗 | リトライ（最大2回）→全失敗時は`_create_fallback_plan()` | WARNING / ERROR |
-| 空レスポンス | リトライ（`continue`）→全失敗時は`_create_fallback_plan()` | WARNING |
-| 不完全/無効なJSON | JSON完全性チェックで検出→リトライ（`continue`） | WARNING |
-| JSONパース失敗（Pydantic） | リトライ→全失敗時は`_create_fallback_plan()` | WARNING / ERROR |
-| AFC永続化による空レスポンス | AFC無効化設定により防止 | ― |
+| Anthropic API呼び出し失敗 | リトライ（最大2回）→全失敗時は`_create_fallback_plan()` | WARNING / ERROR |
+| Tool Use ブロック欠落 | リトライ→全失敗時は`_create_fallback_plan()` | WARNING / ERROR |
+| Pydantic バリデーション失敗 | リトライ→全失敗時は`_create_fallback_plan()` | WARNING / ERROR |
 
 ### コレクション取得失敗時
 

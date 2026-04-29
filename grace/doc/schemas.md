@@ -1,6 +1,6 @@
 # schemas.py - GRACE Pydanticスキーマ定義 ドキュメント
 
-**Version 1.0** | 最終更新: 2025-01-29
+**Version 2.0** | 最終更新: 2026-04-28
 
 ---
 
@@ -40,6 +40,8 @@
 | `ExecutionPlan` | 実行計画全体を表現するPydanticモデル |
 | `StepResult` | ステップ実行結果のPydanticモデル |
 | `ExecutionResult` | 計画全体の実行結果のPydanticモデル |
+| `SearchResultPayload` | 検索結果ペイロード（RAG/Web共通）のPydanticモデル |
+| `SearchResultItem` | 検索結果1件（RAG/Web共通フォーマット）のPydanticモデル |
 | `create_plan_id()` | 一意の計画IDを生成するユーティリティ関数 |
 | `validate_plan_dependencies()` | 計画の依存関係を検証するユーティリティ関数 |
 
@@ -76,6 +78,20 @@ flowchart TB
     MODULE --> PYDANTIC
     MODULE --> DATETIME
     MODULE --> ENUM
+
+    style PLANNER fill:#000,color:#fff
+    style EXECUTOR fill:#000,color:#fff
+    style API fill:#000,color:#fff
+    style ENUMS fill:#000,color:#fff
+    style PLAN_SCHEMAS fill:#000,color:#fff
+    style RESULT_SCHEMAS fill:#000,color:#fff
+    style UTILS fill:#000,color:#fff
+    style PYDANTIC fill:#000,color:#fff
+    style DATETIME fill:#000,color:#fff
+    style ENUM fill:#000,color:#fff
+    style CLIENT fill:#1a1a1a,stroke:#555
+    style MODULE fill:#1a1a1a,stroke:#555
+    style EXTERNAL fill:#1a1a1a,stroke:#555
 ```
 
 ### 1.2 データフロー
@@ -108,6 +124,11 @@ flowchart TB
         ER[ExecutionResult]
     end
 
+    subgraph SEARCH["検索結果スキーマ"]
+        SRP[SearchResultPayload]
+        SRI[SearchResultItem]
+    end
+
     subgraph UTILS["ユーティリティ"]
         CPI[create_plan_id]
         VPD[validate_plan_dependencies]
@@ -119,6 +140,23 @@ flowchart TB
     SR --> ER
     EP --> VPD
     CPI --> EP
+    SRP --> SRI
+
+    style AT fill:#000,color:#fff
+    style SS fill:#000,color:#fff
+    style PS fill:#000,color:#fff
+    style EP fill:#000,color:#fff
+    style SR fill:#000,color:#fff
+    style ER fill:#000,color:#fff
+    style SRP fill:#000,color:#fff
+    style SRI fill:#000,color:#fff
+    style CPI fill:#000,color:#fff
+    style VPD fill:#000,color:#fff
+    style ENUMS fill:#1a1a1a,stroke:#555
+    style PLAN fill:#1a1a1a,stroke:#555
+    style RESULT fill:#1a1a1a,stroke:#555
+    style SEARCH fill:#1a1a1a,stroke:#555
+    style UTILS fill:#1a1a1a,stroke:#555
 ```
 
 ### 2.2 外部依存関係
@@ -221,6 +259,24 @@ flowchart TB
 | `total_token_usage` | `Optional[dict]` | 総トークン使用量 |
 | `total_cost_usd` | `Optional[float]` | 総コスト（USD） |
 | `created_at` | `Optional[datetime]` | 結果作成日時 |
+
+#### SearchResultPayload
+
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
+| `question` | `str` | 関連質問文（RAG検索時） |
+| `answer` | `str` | 回答・スニペット文 |
+| `content` | `str` | 本文コンテンツ（question/answerがない場合） |
+| `source` | `str` | 出典URLまたはファイル名 |
+| `title` | `str` | ドキュメント・ページタイトル |
+
+#### SearchResultItem
+
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
+| `score` | `float` | 関連度スコア（0.0-1.0） |
+| `payload` | `SearchResultPayload` | 検索結果の詳細情報 |
+| `collection` | `str` | 検索元コレクション名（例: `'wikipedia_ja'`, `'web_search'`） |
 
 ### 3.3 ユーティリティ関数一覧
 
@@ -610,7 +666,128 @@ print(result.model_dump_json(indent=2))
 
 ---
 
-### 4.7 ユーティリティ関数
+### 4.7 SearchResultPayload クラス
+
+**概要**: 検索結果のペイロード（RAG/Web共通）を表現するPydanticモデル。RAGSearchTool・WebSearchToolの両方が共通フォーマットで返却する。
+
+```python
+class SearchResultPayload(BaseModel):
+    question: str = Field("", description="関連質問文（RAG検索時）")
+    answer:   str = Field("", description="回答・スニペット文")
+    content:  str = Field("", description="本文コンテンツ（question/answerがない場合）")
+    source:   str = Field("", description="出典URLまたはファイル名")
+    title:    str = Field("", description="ドキュメント・ページタイトル")
+```
+
+| 項目 | 内容 |
+|------|------|
+| **Input** | 各フィールドの値（すべてデフォルト `""` のため省略可） |
+| **Process** | Pydanticによるバリデーション |
+| **Output** | `SearchResultPayload` インスタンス |
+
+**フィールド詳細**:
+
+| フィールド | 型 | 必須 | デフォルト | 用途 |
+|-----------|-----|:----:|-----------|------|
+| `question` | `str` | - | `""` | RAG検索時のQA対 Q側 |
+| `answer` | `str` | - | `""` | RAG検索時のQA対 A側 / Web検索のスニペット |
+| `content` | `str` | - | `""` | question/answer が空の場合の本文 |
+| `source` | `str` | - | `""` | 出典URL（Web検索）またはファイル名（RAG） |
+| `title` | `str` | - | `""` | ページタイトル（Web検索）またはドキュメント名 |
+
+**戻り値例**:
+
+```python
+# RAG検索結果ペイロード
+SearchResultPayload(
+    question="有給休暇は何日ありますか？",
+    answer="正社員は年間20日の有給休暇が付与されます。",
+    content="",
+    source="HR_FAQ_2024.md",
+    title=""
+)
+
+# Web検索結果ペイロード
+SearchResultPayload(
+    question="",
+    answer="東京都の人口は約1400万人です...",
+    content="",
+    source="https://www.example.com/tokyo-population",
+    title="東京都の人口統計"
+)
+```
+
+---
+
+### 4.8 SearchResultItem クラス
+
+**概要**: 検索結果1件を表現するPydanticモデル（RAG/Web共通フォーマット）。スコア・ペイロード・コレクション名を保持し、`ReasoningTool` の `sources` 引数として渡される。
+
+```python
+class SearchResultItem(BaseModel):
+    score:      float                = Field(..., ge=0.0, le=1.0, description="関連度スコア")
+    payload:    SearchResultPayload  = Field(default_factory=SearchResultPayload)
+    collection: str                  = Field("", description="検索元コレクション名")
+```
+
+| 項目 | 内容 |
+|------|------|
+| **Input** | `score`（必須）、`payload`、`collection` |
+| **Process** | Pydanticによるバリデーション（score: 0.0-1.0） |
+| **Output** | `SearchResultItem` インスタンス |
+
+**フィールド詳細**:
+
+| フィールド | 型 | 必須 | デフォルト | 制約 |
+|-----------|-----|:----:|-----------|------|
+| `score` | `float` | ✅ | - | 0.0-1.0 |
+| `payload` | `SearchResultPayload` | - | `SearchResultPayload()` | - |
+| `collection` | `str` | - | `""` | - |
+
+**`collection` の代表値**:
+
+| 値 | 説明 |
+|---|------|
+| `"wikipedia_ja"` | 日本語Wikipediaコレクション |
+| `"livedoor"` | ライブドアニュースコレクション |
+| `"cc_news"` | CC Newsコレクション |
+| `"web_search"` | Web検索結果（WebSearchToolが設定） |
+
+**戻り値例**:
+
+```python
+SearchResultItem(
+    score=0.92,
+    payload=SearchResultPayload(
+        question="有給休暇は何日ありますか？",
+        answer="正社員は年間20日の有給休暇が付与されます。",
+        source="HR_FAQ_2024.md"
+    ),
+    collection="wikipedia_ja"
+)
+```
+
+```python
+# 使用例（ReasoningTool への sources として渡す）
+from grace.schemas import SearchResultItem, SearchResultPayload
+
+items = [
+    SearchResultItem(
+        score=0.92,
+        payload=SearchResultPayload(
+            question="有給休暇は何日ありますか？",
+            answer="正社員は年間20日の有給休暇が付与されます。",
+            source="HR_FAQ_2024.md"
+        ),
+        collection="wikipedia_ja"
+    )
+]
+reasoning_tool.execute(query="有給休暇の日数を教えて", sources=items)
+```
+
+---
+
+### 4.9 ユーティリティ関数
 
 #### `create_plan_id`
 
@@ -856,6 +1033,10 @@ __all__ = [
     "StepResult",
     "ExecutionResult",
 
+    # Search result schemas (RAG/Web common)
+    "SearchResultPayload",
+    "SearchResultItem",
+
     # Utilities
     "create_plan_id",
     "validate_plan_dependencies",
@@ -869,6 +1050,7 @@ __all__ = [
 | バージョン | 日付 | 変更内容 |
 |-----------|------|---------|
 | 1.0 | 2025-01-29 | 初版作成 |
+| 2.0 | 2026-04-28 | `SearchResultPayload`・`SearchResultItem` クラスを追加（schemas.py の実装に合わせて文書化）。`__all__` エクスポートに両クラスを追加。Mermaid図全ノード黒背景・白文字スタイル適用。 |
 
 ---
 
@@ -908,6 +1090,22 @@ flowchart LR
     SCHEMAS --> ENUM
     SCHEMAS --> HL
     SCHEMAS --> TM
+
+    style SCHEMAS fill:#000,color:#fff
+    style BM fill:#000,color:#fff
+    style FLD fill:#000,color:#fff
+    style CFG fill:#000,color:#fff
+    style LIT fill:#000,color:#fff
+    style OPT fill:#000,color:#fff
+    style LST fill:#000,color:#fff
+    style ANY fill:#000,color:#fff
+    style DT fill:#000,color:#fff
+    style ENUM fill:#000,color:#fff
+    style HL fill:#000,color:#fff
+    style TM fill:#000,color:#fff
+    style PYDANTIC fill:#1a1a1a,stroke:#555
+    style TYPING fill:#1a1a1a,stroke:#555
+    style STDLIB fill:#1a1a1a,stroke:#555
 ```
 
 ---
@@ -931,9 +1129,28 @@ flowchart TB
         ER[ExecutionResult]
     end
 
+    subgraph SEARCH["検索結果スキーマ"]
+        SRP[SearchResultPayload]
+        SRI[SearchResultItem]
+    end
+
     AT -->|action| PS
     PS -->|steps| EP
     SS -.->|status参考| SR
     SR -->|step_results| ER
     EP -.->|plan_id| ER
+    SRP -->|payload| SRI
+
+    style AT fill:#000,color:#fff
+    style SS fill:#000,color:#fff
+    style PS fill:#000,color:#fff
+    style EP fill:#000,color:#fff
+    style SR fill:#000,color:#fff
+    style ER fill:#000,color:#fff
+    style SRP fill:#000,color:#fff
+    style SRI fill:#000,color:#fff
+    style ENUMS fill:#1a1a1a,stroke:#555
+    style PLAN fill:#1a1a1a,stroke:#555
+    style RESULT fill:#1a1a1a,stroke:#555
+    style SEARCH fill:#1a1a1a,stroke:#555
 ```

@@ -1,6 +1,8 @@
 # executor.py - GRACE計画実行エージェント ドキュメント
 
-**Version 3.0** | 最終更新: 2026-02-19
+**Version 4.0** | 最終更新: 2026-04-28
+
+> **[2026-04-28 更新]** Anthropic マイグレーション対応。executor.py 自体の直接 LLM 呼び出しはないが、依存する `confidence.py`（LLMSelfEvaluator / QueryCoverageCalculator）および Legacy ReActAgent のバックエンドが Anthropic Claude API に移行済み。
 
 ---
 
@@ -620,7 +622,7 @@ def _execute_legacy_agent_step(
 | 項目 | 内容 |
 |------|------|
 | **Input** | `step: PlanStep`, `state: ExecutionState`, `start_time: float` |
-| **Process** | 1. Qdrantからコレクション一覧を取得（失敗時はconfig.qdrant.search_priority）<br>2. ReActAgentを初期化<br>3. `execute_turn`でストリーミング実行し、各イベントをyieldで上位に中継<br>4. イベントからソースを抽出（"Source:"パターン）<br>5. 簡易Confidence計算（回答あり=0.8、なし/謝罪=0.3）<br>6. ConfidenceScoreオブジェクトを作成・保存<br>7. StepResultを構築してreturn |
+| **Process** | 1. Qdrantからコレクション一覧を取得（失敗時はconfig.qdrant.search_priority）<br>2. **ReActAgentを初期化**（`services.agent_service.ReActAgent`。Anthropic移行済み確認）<br>&nbsp;&nbsp;- `create_llm_client("anthropic")` → `AnthropicClient`<br>&nbsp;&nbsp;- ツール定義は Anthropic Tool Use 形式（`"input_schema"` キー）<br>&nbsp;&nbsp;- 会話履歴は `self._messages` リストで自前管理<br>3. `execute_turn(user_input)` でジェネレータ実行。内部は2フェーズ構成:<br>&nbsp;&nbsp;**Phase 1 - ReAct ループ** (`_execute_react_loop`): `generate_with_tools(messages, tools, system, max_tokens)` でTool Useループ。`stop_reason == "tool_use"` で分岐し、複数ツール結果を1件の user メッセージにまとめて `self._messages` に追記<br>&nbsp;&nbsp;**Phase 2 - Reflection** (`_execute_reflection_phase`): `generate_with_tools(tools=[])` で会話コンテキスト（`self._messages`）を維持したまま回答を自己評価・修正<br>4. 各イベント（log / tool_call / tool_result / final_text / final_answer）をyieldで上位に中継<br>5. イベントからソースを抽出（"Source:"パターン）<br>6. 簡易Confidence計算（回答あり=0.8、なし/謝罪=0.3）<br>7. ConfidenceScoreオブジェクトを作成・保存<br>8. StepResultを構築してreturn |
 | **Output** | `Generator[Any, None, StepResult]` |
 
 ---
@@ -998,11 +1000,29 @@ LEGACY_AGENT_AVAILABLE: bool
 # services.agent_service のインポートに成功した場合は True
 ```
 
+> **[Migration 確認済み ✅]** `services.agent_service.ReActAgent` は Anthropic 移行完了。内部実装の概要は以下のとおり。
+>
+> | 項目 | Gemini（旧） | Anthropic（現在） |
+> |------|------------|-----------------|
+> | LLMクライアント | `genai.Client()` + `chat` セッション | `create_llm_client("anthropic")` → `AnthropicClient` |
+> | LLM呼び出し | `chat.send_message()` | `llm.generate_with_tools(messages, tools, system, max_tokens)` |
+> | ツール定義形式 | `types.Tool(function_declarations=[...])` + `"parameters"` キー | `[{"name":..., "input_schema":{...}}]`（`"input_schema"` キー） |
+> | 会話履歴管理 | chat オブジェクトが自動管理 | `self._messages` リストで自前管理（ステートレス設計） |
+> | ツール結果返却 | `types.Part.from_function_response()` を1件ずつ送信 | 全件を1件の `user` メッセージにまとめて追記 |
+> | Reflection フェーズ | `chat.send_message(reflection_msg)` | `generate_with_tools(tools=[], messages=self._messages, ...)` で会話コンテキスト維持 |
+> | デフォルトモデル | `"gemini-3-flash-preview"` | `get_config("models.default", "claude-sonnet-4-6")` |
+>
+> **実行フロー**: `execute_turn(user_input)` は以下の2フェーズで構成される。
+> 1. **ReAct ループ** (`_execute_react_loop`): `stop_reason == "tool_use"` で分岐し、ツール呼び出し → 結果追記を繰り返す
+> 2. **Reflection** (`_execute_reflection_phase`): ドラフト回答を `generate_with_tools(tools=[])` で自己評価・修正。`Final Answer:` を抽出して返却
+>
+> インポート失敗時は `LEGACY_AGENT_AVAILABLE = False` となり、WARNING ログのみで継続します。
+
 ### 5.2 GraceConfigから使用される設定
 
 | 設定パス | 型 | デフォルト | 説明 |
 |---------|-----|----------|------|
-| `llm.model` | str | 設定ファイル依存 | LLMモデル名（Legacy Agent初期化時に使用） |
+| `llm.model` | str | `"claude-sonnet-4-6"` | LLMモデル名（Legacy Agent初期化時に使用）。Anthropic Claude モデルを指定（例: `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`） |
 | `qdrant.url` | str | `http://localhost:6333` | QdrantサーバーURL |
 | `qdrant.search_priority` | list | `["wikipedia_ja", ...]` | 検索優先順序（コレクション取得失敗時のフォールバック） |
 | `confidence.weights.*` | float | 各種 | 信頼度計算の重み |
@@ -1142,6 +1162,7 @@ __all__ = [
 | 1.0 | ドキュメント改修: a_md_doc_format.md v1.2に準拠、主な責務・主要機能一覧・IPO詳細に「**概要**:」ラベルを追加 |
 | 2.0 | フォーマット仕様v1.4準拠: ASCII図をMermaid v9フローチャートに全面変更、「各責務対応のモジュール」テーブル追加、`_execute_fallback`/`_prepare_tool_kwargs`/`_format_output`/`_create_execution_result`/各介入処理メソッドのIPO詳細を追加、execute_plan_generatorのProcess詳細化（yield from中継・介入時一時停止・リプラン再帰の記載）、llm.modelを「設定ファイル依存」に変更 |
 | 3.0 | web_search対応: アーキテクチャ図にWebSearch Tool追加、`_prepare_tool_kwargs`にweb_search引数（num_results/language）追加、設定テーブルにweb_search.*設定を追加、内部依存にcreate_source_agreement_calculator追加 |
+| 4.0 | **Anthropic マイグレーション対応**: `_execute_legacy_agent_step` に ReActAgent の Anthropic 対応詳細（`generate_with_tools()` ReAct ループ + `generate_with_tools(tools=[])` Reflection、`self._messages` 自前管理）を確認・記載。`LEGACY_AGENT_AVAILABLE` セクションに移行前後の対応表を追加。`llm.model` のデフォルト値を `claude-sonnet-4-6` に更新。executor.py 自体の直接 LLM 呼び出しはなく、依存する `confidence.py` の Anthropic 対応は `grace_process.md` §4 参照。 |
 
 ---
 

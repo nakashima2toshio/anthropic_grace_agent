@@ -1,6 +1,5 @@
 """
 GRACE Intervention - HITL（Human-in-the-Loop）介入システム
-
 人間と協調するためのインターフェースと介入ロジックを提供
 """
 

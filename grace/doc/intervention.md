@@ -1,6 +1,6 @@
 # intervention.py - HITL介入システム ドキュメント
 
-**Version 1.1** | 最終更新: 2026-02-13
+**Version 1.2** | 最終更新: 2026-04-28
 
 ---
 
@@ -98,6 +98,20 @@ flowchart TB
     HANDLER --> CONFIG
     ADJUSTER --> CONF
     ADJUSTER --> CONFIG
+
+    style ORCH fill:#000,color:#fff
+    style EXEC fill:#000,color:#fff
+    style PLAN fill:#000,color:#fff
+    style HANDLER fill:#000,color:#fff
+    style ADJUSTER fill:#000,color:#fff
+    style FLOW fill:#000,color:#fff
+    style REQ fill:#000,color:#fff
+    style SCHEMAS fill:#000,color:#fff
+    style CONF fill:#000,color:#fff
+    style CONFIG fill:#000,color:#fff
+    style CLIENT fill:#1a1a1a,stroke:#555
+    style MODULE fill:#1a1a1a,stroke:#555
+    style EXTERNAL fill:#1a1a1a,stroke:#555
 ```
 
 ### 1.2 データフロー
@@ -177,6 +191,42 @@ flowchart TB
     CF_HANDLER --> H_INIT
     CF_ADJUSTER --> A_INIT
     CF_FLOW --> F_INIT
+
+    style REQ fill:#000,color:#fff
+    style RES fill:#000,color:#fff
+    style FB fill:#000,color:#fff
+    style ACT fill:#000,color:#fff
+    style H_INIT fill:#000,color:#fff
+    style H_HANDLE fill:#000,color:#fff
+    style H_SILENT fill:#000,color:#fff
+    style H_NOTIFY fill:#000,color:#fff
+    style H_CONFIRM fill:#000,color:#fff
+    style H_ESCALATE fill:#000,color:#fff
+    style H_TIMEOUT fill:#000,color:#fff
+    style H_REQ_CONF fill:#000,color:#fff
+    style H_REQ_CLAR fill:#000,color:#fff
+    style H_STATUS fill:#000,color:#fff
+    style H_HISTORY fill:#000,color:#fff
+    style H_CLEAR fill:#000,color:#fff
+    style A_INIT fill:#000,color:#fff
+    style A_RECORD fill:#000,color:#fff
+    style A_ADJUST fill:#000,color:#fff
+    style A_RAISE fill:#000,color:#fff
+    style A_LOWER fill:#000,color:#fff
+    style A_LEVEL fill:#000,color:#fff
+    style A_GET fill:#000,color:#fff
+    style A_RESET fill:#000,color:#fff
+    style F_INIT fill:#000,color:#fff
+    style F_CONFIRM fill:#000,color:#fff
+    style CF_HANDLER fill:#000,color:#fff
+    style CF_ADJUSTER fill:#000,color:#fff
+    style CF_FLOW fill:#000,color:#fff
+    style DATA fill:#1a1a1a,stroke:#555
+    style ENUM fill:#1a1a1a,stroke:#555
+    style HANDLER_CLS fill:#1a1a1a,stroke:#555
+    style ADJUSTER_CLS fill:#1a1a1a,stroke:#555
+    style FLOW_CLS fill:#1a1a1a,stroke:#555
+    style FACTORY fill:#1a1a1a,stroke:#555
 ```
 
 ### 2.2 外部依存関係
@@ -1268,6 +1318,7 @@ __all__ = [
 |-----------|---------|
 | 1.0 | 初版作成 |
 | 1.1 | フォーマット仕様v1.4準拠: 「各責務対応のモジュール」テーブル追加、ASCII図をMermaid v9フローチャートに変更（アーキテクチャ構成図・モジュール構成図・付録依存関係図） |
+| 1.2 | Mermaid図全ノード黒背景・白文字スタイル適用（2026-04-28） |
 
 ---
 
@@ -1309,4 +1360,24 @@ flowchart LR
     CONFIDENCE --> C3[ActionDecision]
     CONFIG --> CF1["get_config()"]
     CONFIG --> CF2[GraceConfig]
+
+    style INTERVENTION fill:#000,color:#fff
+    style LOGGING fill:#000,color:#fff
+    style TIME fill:#000,color:#fff
+    style DATACLASSES fill:#000,color:#fff
+    style TYPING fill:#000,color:#fff
+    style ENUM_LIB fill:#000,color:#fff
+    style DATETIME fill:#000,color:#fff
+    style SCHEMAS fill:#000,color:#fff
+    style CONFIDENCE fill:#000,color:#fff
+    style CONFIG fill:#000,color:#fff
+    style S1 fill:#000,color:#fff
+    style S2 fill:#000,color:#fff
+    style C1 fill:#000,color:#fff
+    style C2 fill:#000,color:#fff
+    style C3 fill:#000,color:#fff
+    style CF1 fill:#000,color:#fff
+    style CF2 fill:#000,color:#fff
+    style STDLIB fill:#1a1a1a,stroke:#555
+    style INTERNAL fill:#1a1a1a,stroke:#555
 ```
