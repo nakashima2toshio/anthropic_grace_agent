@@ -15,7 +15,7 @@ from typing import Optional, List
 
 # [MIGRATION] 削除: from google import genai / from google.genai import types
 # [MIGRATION] 追加: AnthropicClient を helper_llm 経由で使用
-from helper_llm import create_llm_client
+from helper.helper_llm import create_llm_client
 
 from .schemas import (
     ExecutionPlan,

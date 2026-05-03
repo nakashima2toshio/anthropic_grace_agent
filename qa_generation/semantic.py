@@ -9,7 +9,7 @@ import logging
 from typing import List, Dict, Any, Optional
 import numpy as np
 import tiktoken
-from helper_llm import create_llm_client  # [MIGRATION] helper.helper_llm → helper_llm
+from helper.helper_llm import create_llm_client  # [FIXED] モジュールパス修正: helper_llm → helper.helper_llm
 from helper.helper_embedding import create_embedding_client, get_embedding_dimensions
 
 logger = logging.getLogger(__name__)
@@ -21,9 +21,9 @@ class SemanticCoverage:
     def __init__(self,
                  embedding_model="text-embedding-3-large"):  # [MIGRATION] gemini-embedding-001 → text-embedding-3-large
         self.embedding_model = embedding_model
-        # Gemini埋め込みクライアントを使用
-        self.embedding_client = create_embedding_client(provider="openai")  # [MIGRATION] gemini → openai
-        self.embedding_dims = get_embedding_dimensions("openai")  # 3072（openai text-embedding-3-large と同次元）
+        # OpenAI埋め込みクライアントを使用
+        self.embedding_client = create_embedding_client(provider="gemini")  # [REVERT] openai → gemini
+        self.embedding_dims = get_embedding_dimensions("gemini")  # 3072（Gemini gemini-embedding-001）
         # トークンカウント用のLLMクライアント (decode機能がないためtiktokenを併用)
         # [MIGRATION] provider="gemini" → "anthropic"
         self.unified_client = create_llm_client(provider="anthropic")
@@ -440,7 +440,7 @@ class SemanticCoverage:
         texts = [chunk["text"] for chunk in doc_chunks]
 
         try:
-            # Gemini Embedding APIを呼び出し
+            # OpenAI Embedding APIを呼び出し
             embedding_vectors = self.embedding_client.embed_texts(texts, batch_size=100)
 
             # 埋め込みベクトルを正規化
@@ -466,7 +466,7 @@ class SemanticCoverage:
             return np.zeros(self.embedding_dims)
 
         try:
-            # Gemini Embedding APIを使用
+            # OpenAI Embedding APIを使用
             embedding = self.embedding_client.embed_text(text)
             embedding = np.array(embedding)
             # 正規化
@@ -494,7 +494,7 @@ class SemanticCoverage:
             return np.zeros((len(texts), self.embedding_dims))
 
         try:
-            # Gemini Embedding APIを使用
+            # OpenAI Embedding APIを使用
             embedding_vectors = self.embedding_client.embed_texts(texts, batch_size=batch_size)
 
             # 埋め込みベクトルを正規化

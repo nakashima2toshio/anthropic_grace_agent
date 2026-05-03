@@ -12,8 +12,8 @@ from enum import Enum
 
 # [MIGRATION] from google import genai / from google.genai import types を削除
 # AnthropicClient は helper_llm 経由、Embedding は helper_embedding 経由で使用
-from helper_llm import create_llm_client
-from helper_embedding import create_embedding_client
+from helper.helper_llm import create_llm_client
+from helper.helper_embedding import create_embedding_client
 from pydantic import BaseModel
 from .config import get_config, GraceConfig
 

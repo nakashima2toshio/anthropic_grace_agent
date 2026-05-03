@@ -346,7 +346,7 @@ class QdrantConfig:
     DOCKER_IMAGE: str = "qdrant/qdrant"
     HEALTH_CHECK_ENDPOINT: str = "/collections"
     DEFAULT_TIMEOUT: int = 30
-    DEFAULT_VECTOR_SIZE: int = 3072  # gemini-embedding-001 (MRL: 768/1536/3072)
+    DEFAULT_VECTOR_SIZE: int = 3072  # gemini-embedding-001
     DEFAULT_EMBEDDING_MODEL: str = "gemini-embedding-001"
 
 
@@ -494,8 +494,8 @@ class AgentConfig:
     RAG_SEARCH_LIMIT: int = 3
     RAG_SCORE_THRESHOLD: float = 0.50  # 検索結果として採用する最小スコア (0.7 -> 0.5に緩和)
 
-    # エージェントモデル設定
-    MODEL_NAME: str = GeminiConfig.DEFAULT_MODEL
+    # エージェントモデル設定 [MIGRATION] Gemini → Claude
+    MODEL_NAME: str = ModelConfig.DEFAULT_MODEL  # "claude-sonnet-4-6"
 
     # ロギング設定
     CHAT_LOG_FILE_NAME: str = "agent_chat.log"
@@ -509,9 +509,9 @@ class AgentConfig:
 class LLMProviderConfig:
     """LLMプロバイダー設定"""
 
-    # デフォルトプロバイダー
-    DEFAULT_LLM_PROVIDER: str = "gemini"  # "openai" or "gemini"
-    DEFAULT_EMBEDDING_PROVIDER: str = "gemini"  # "openai" or "gemini"
+    # デフォルトプロバイダー [MIGRATION] Gemini → Anthropic/OpenAI
+    DEFAULT_LLM_PROVIDER: str = "anthropic"     # LLM: Anthropic Claude を維持
+    DEFAULT_EMBEDDING_PROVIDER: str = "gemini"  # Embedding: Gemini に戻す（OpenAI Tier問題のため）
 
     @classmethod
     def get_embedding_dims(cls, provider: Optional[str] = None) -> int:

@@ -1,4 +1,4 @@
-# intervention.py - HITL介入システム ドキュメント
+# intervention.py - HITL（Human-In-The-Loop（ヒューマン・イン・ザ・ループ））介入システム ドキュメント
 
 **Version 1.2** | 最終更新: 2026-04-28
 

@@ -1,8 +1,8 @@
 # requirements.txt
 # chunking パッケージの依存関係
 
-# Google Generative AI SDK
-google-genai>=0.1.0
+# Anthropic SDK
+anthropic>=0.40.0
 
 # Data validation
 pydantic>=2.0.0

@@ -1,0 +1,12 @@
+{
+  "dataset_type": "cc_news_1per_chunks_20260502_204155",
+  "dataset_name": "cc_news_1per_chunks_20260502_204155",
+  "generated_at": "20260502_204328",
+  "total_qa_pairs": 0,
+  "coverage_rate": 0,
+  "files": {
+    "qa_json": "qa_output/pipeline/qa_pairs_cc_news_1per_chunks_20260502_204155_20260502_204328.json",
+    "qa_csv": "qa_output/pipeline/qa_pairs_cc_news_1per_chunks_20260502_204155_20260502_204328.csv",
+    "coverage": "qa_output/pipeline/coverage_cc_news_1per_chunks_20260502_204155_20260502_204328.json"
+  }
+}

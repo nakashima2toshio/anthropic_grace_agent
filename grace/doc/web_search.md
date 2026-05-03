@@ -1,6 +1,6 @@
 # WebSearchTool (tools.py) - Web検索ツール ドキュメント
 
-**Version 1.0** | 最終更新: 2026-02-20
+**Version 2.0** | 最終更新: 2026-04-28
 
 ---
 
@@ -299,8 +299,22 @@ flowchart TB
     EXECUTE --> PARSE
     EXECUTE --> CONF
 
+    style EXECUTOR fill:#000,color:#fff
+    style REGISTRY fill:#000,color:#fff
+    style INIT fill:#000,color:#fff
+    style EXECUTE fill:#000,color:#fff
+    style SERPAPI fill:#000,color:#fff
+    style DDG fill:#000,color:#fff
     style GOOGLE fill:#555,color:#fff
+    style PARSE fill:#000,color:#fff
+    style CONF fill:#000,color:#fff
+    style SERPAPI_API fill:#000,color:#fff
+    style DDG_API fill:#000,color:#fff
     style GOOGLE_API fill:#555,color:#fff
+    style CONFIG_SVC fill:#000,color:#fff
+    style CLIENT fill:#1a1a1a,stroke:#555
+    style MODULE fill:#1a1a1a,stroke:#555
+    style EXTERNAL fill:#1a1a1a,stroke:#555
 ```
 
 ### 1.2 データフロー
@@ -359,6 +373,23 @@ flowchart TB
     SRI --> SRP
     WS_EXEC --> WS_CONF
     WS_EXEC --> TR
+
+    style WS_INIT fill:#000,color:#fff
+    style WS_EXEC fill:#000,color:#fff
+    style WS_SERPAPI fill:#000,color:#fff
+    style WS_DDG fill:#000,color:#fff
+    style WS_GOOGLE fill:#555,color:#fff
+    style WS_PARSE fill:#000,color:#fff
+    style WS_CONF fill:#000,color:#fff
+    style WS_CONFIG fill:#000,color:#fff
+    style GRACE_CONFIG fill:#000,color:#fff
+    style SRI fill:#000,color:#fff
+    style SRP fill:#000,color:#fff
+    style TR fill:#000,color:#fff
+    style WEBSEARCH fill:#1a1a1a,stroke:#555
+    style CONFIG fill:#1a1a1a,stroke:#555
+    style SCHEMA fill:#1a1a1a,stroke:#555
+    style OUTPUT fill:#1a1a1a,stroke:#555
 ```
 
 ### 2.2 外部依存関係
@@ -895,7 +926,7 @@ class SearchResultItem(BaseModel):
 | `payload` | `SearchResultPayload` | 詳細情報 | Q/A + ソース | スニペット + URL |
 | `collection` | `str` | 検索元 | `"wikipedia_ja"` 等 | `"web_search"` 固定 |
 
-> 📝 **注意**: 現時点では `WebSearchTool._parse_to_rag_format()` は `dict` を返しています。`SearchResultItem` は将来的な型安全化のための定義であり、段階的に移行予定です。既存コードとの互換性は `SearchResultItem.model_dump()` で保たれます。
+> 📝 **実装メモ**: `WebSearchTool._parse_to_rag_format()` は現在 `dict` リストを返します（`SearchResultItem` インスタンスではなく）。`SearchResultItem` / `SearchResultPayload` は型定義として `schemas.py` に存在し、`grace/__init__.py` からエクスポートされていますが、`_parse_to_rag_format()` の内部実装では `dict` を直接構築しています。型安全化（`SearchResultItem` インスタンスを返すよう変更）は将来の移行課題です。既存コードとの互換性は `SearchResultItem.model_dump()` で保たれます。
 
 ---
 
@@ -1034,20 +1065,51 @@ print(f"信頼度: {result.overall_confidence:.2f}")
 
 ## 7. エクスポート
 
-`__init__.py` でエクスポートされる要素：
+`grace/__init__.py` でエクスポートされる要素（確認済み ✅）：
+
+```python
+# Tools（tools.py 経由）
+from grace.tools import (
+    ToolResult,
+    BaseTool,
+    RAGSearchTool,
+    WebSearchTool,        # ← 追加済み確認
+    ReasoningTool,
+    AskUserTool,
+    ToolRegistry,
+    create_tool_registry,
+)
+
+# Schemas（schemas.py 経由）
+from grace.schemas import (
+    SearchResultPayload,  # ← 追加済み確認
+    SearchResultItem,     # ← 追加済み確認
+    ...
+)
+```
+
+`grace/__init__.py` の `__all__` 抜粋：
 
 ```python
 __all__ = [
-    # Tools（tools.py）
+    # Tools
+    "ToolResult",
+    "BaseTool",
+    "RAGSearchTool",
     "WebSearchTool",
+    "ReasoningTool",
+    "AskUserTool",
+    "ToolRegistry",
+    "create_tool_registry",
 
-    # Schemas（schemas.py）
+    # Schemas（検索結果共通）
     "SearchResultPayload",
     "SearchResultItem",
+    ...
 ]
 ```
 
-`tools.py` の `__all__`:
+`grace/tools.py` の `__all__` 抜粋：
 
 ```python
 __all__ = [
@@ -1066,6 +1128,8 @@ __all__ = [
 ]
 ```
 
+> **注**: `web_search_upgrade.md` では `__init__.py` への追加が「未対応（要修正）」とされていたが、現在は追加済みである。`from grace import WebSearchTool` による直接インポートも正常に動作する。
+
 ---
 
 ## 8. 変更履歴
@@ -1073,6 +1137,7 @@ __all__ = [
 | バージョン | 変更内容 |
 |-----------|---------|
 | 1.0 | 初版作成。WebSearchTool の全メソッド IPO 詳細、SearchResultItem / SearchResultPayload スキーマ定義、バックエンド別設定を記載 |
+| 2.0 | **`__init__.py` 対応確認**（2026-04-28）: `WebSearchTool` / `SearchResultPayload` / `SearchResultItem` が `grace/__init__.py` のインポートと `__all__` 両方に追加済みであることを確認。§7 エクスポートを実際の `__init__.py` 内容に更新。`_parse_to_rag_format()` が `dict` 返却である旨の注記を整理。付録 依存関係図に全ノード黒背景・白文字スタイル適用。 |
 
 ---
 
@@ -1114,7 +1179,22 @@ flowchart LR
     SCHEMAS --> SRI["SearchResultItem"]
     SCHEMAS --> SRP["SearchResultPayload"]
 
+    style WEBSEARCH fill:#000,color:#fff
+    style REQUESTS fill:#000,color:#fff
+    style DDG_LIB fill:#000,color:#fff
+    style CONFIG fill:#000,color:#fff
+    style SCHEMAS fill:#000,color:#fff
+    style BASE fill:#000,color:#fff
+    style TOOLRESULT fill:#000,color:#fff
+    style SERPAPI_EP fill:#000,color:#fff
+    style DDG_EP fill:#000,color:#fff
     style GOOGLE_EP fill:#555,color:#fff
+    style WS_CFG fill:#000,color:#fff
+    style SRI fill:#000,color:#fff
+    style SRP fill:#000,color:#fff
+    style EXTERNAL fill:#1a1a1a,stroke:#555
+    style INTERNAL fill:#1a1a1a,stroke:#555
+    style API fill:#1a1a1a,stroke:#555
 ```
 
 ---

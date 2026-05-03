@@ -21,7 +21,7 @@ import logging
 import traceback
 import glob
 from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional, Tuple, Iterable
+from typing import Dict, List, Any, Optional, Tuple, Iterable, Callable
 
 import pandas as pd
 import tiktoken
@@ -187,7 +187,7 @@ def get_collection_embedding_params(
     Returns:
         {"model": str, "dims": int}
     """
-    # デフォルト設定（Gemini）
+    # デフォルト設定（Gemini） [REVERT] OpenAI → Gemini（OpenAI Tier未解放のため）
     default_params = {"model": "gemini-embedding-001", "dims": 3072}
 
     try:
@@ -207,7 +207,7 @@ def get_collection_embedding_params(
         if size == 1536:
             return {"model": "text-embedding-3-small", "dims": 1536}
         elif size == 3072:
-            return {"model": "gemini-embedding-001", "dims": 3072}
+            return {"model": "gemini-embedding-001", "dims": 3072}  # [REVERT] text-embedding-3-large → gemini-embedding-001
         elif size == 768:
             return {"model": "gemini-embedding-001", "dims": 768}
         elif size > 0:
@@ -630,7 +630,7 @@ def build_inputs_for_embedding(df: pd.DataFrame, include_answer: bool) -> List[s
 def embed_texts_for_qdrant(
         texts: List[str], model: str = "gemini-embedding-001", batch_size: int = 100
 ) -> List[List[float]]:
-    """テキストをバッチ処理でEmbeddingに変換（Gemini API使用）"""
+    """テキストをバッチ処理でEmbeddingに変換（Gemini API使用）[REVERT] OpenAI → Gemini"""
     # Gemini Embeddingクライアントを使用
     embedding_client = create_embedding_client(provider="gemini")
     dims = get_embedding_dimensions("gemini")  # 3072
@@ -647,7 +647,7 @@ def embed_texts_for_qdrant(
         logger.warning("全てのテキストが空文字列です。ダミーベクトルを返します。")
         return [[0.0] * dims] * len(texts)
 
-    # Gemini Embeddingでバッチ処理
+    # OpenAI Embeddingでバッチ処理
     valid_vecs = embedding_client.embed_texts(valid_texts, batch_size=batch_size)
 
     # 元のインデックスに合わせてベクトルを再配置
@@ -818,6 +818,7 @@ def embed_query_for_search(
     検索クエリをベクトル化
 
     次元数(dims)またはモデル名(model)に基づいてプロバイダーを自動選択します。
+    [REVERT] デフォルトを text-embedding-3-small → gemini-embedding-001 に戻す
     """
     # デフォルトはGemini
     provider = "gemini"
@@ -856,7 +857,7 @@ def scroll_all_points_with_vectors(
         client: QdrantClient,
         collection_name: str,
         batch_size: int = 100,
-        progress_callback: Optional[callable] = None,
+        progress_callback: Optional[Callable] = None,
 ) -> List[models.Record]:
     """コレクションから全ポイント（ベクトル含む）を取得
 
@@ -907,7 +908,7 @@ def merge_collections(
         target_collection: str,
         recreate: bool = True,
         vector_size: int = 3072,
-        progress_callback: Optional[callable] = None,
+        progress_callback: Optional[Callable] = None,
 ) -> Dict[str, Any]:
     """複数コレクションを統合して新コレクションに登録
 
@@ -1062,4 +1063,3 @@ def get_all_collections_simple(client: QdrantClient) -> List[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"コレクション一覧取得エラー: {e}")
         return []
-

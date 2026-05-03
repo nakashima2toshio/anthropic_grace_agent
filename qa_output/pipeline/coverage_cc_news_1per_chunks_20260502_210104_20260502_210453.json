@@ -1,0 +1,127 @@
+{
+  "coverage_rate": 0.75,
+  "covered_chunks": 3,
+  "total_chunks": 4,
+  "uncovered_chunks": [
+    {
+      "chunk_id": "cc_news_1per_chunk_1",
+      "similarity": 0.6942675847386748,
+      "gap": 0.005732415261325174,
+      "text_preview": "New York City Ballet Announces Interim Leadership Team The New York City Ballet Board of Directors announced on Saturday the interim team that has been appointed to run the artistic side of the compan..."
+    }
+  ],
+  "max_similarities": [
+    0.7803214649174262,
+    0.6942675847386748,
+    0.7933678515670758,
+    0.7042641843383226
+  ],
+  "threshold": 0.7,
+  "multi_threshold": {
+    "strict": {
+      "threshold": 0.8,
+      "covered_chunks": 0,
+      "coverage_rate": 0.0,
+      "uncovered_count": 4,
+      "uncovered_chunks": [
+        {
+          "chunk_id": "cc_news_1per_chunk_0",
+          "similarity": 0.7803214649174262,
+          "gap": 0.01967853508257389
+        },
+        {
+          "chunk_id": "cc_news_1per_chunk_1",
+          "similarity": 0.6942675847386748,
+          "gap": 0.10573241526132526
+        },
+        {
+          "chunk_id": "cc_news_1per_chunk_2",
+          "similarity": 0.7933678515670758,
+          "gap": 0.006632148432924256
+        },
+        {
+          "chunk_id": "cc_news_1per_chunk_3",
+          "similarity": 0.7042641843383226,
+          "gap": 0.09573581566167744
+        }
+      ]
+    },
+    "standard": {
+      "threshold": 0.7,
+      "covered_chunks": 3,
+      "coverage_rate": 0.75,
+      "uncovered_count": 1,
+      "uncovered_chunks": [
+        {
+          "chunk_id": "cc_news_1per_chunk_1",
+          "similarity": 0.6942675847386748,
+          "gap": 0.005732415261325174
+        }
+      ]
+    },
+    "lenient": {
+      "threshold": 0.6,
+      "covered_chunks": 4,
+      "coverage_rate": 1.0,
+      "uncovered_count": 0,
+      "uncovered_chunks": []
+    }
+  },
+  "chunk_analysis": {
+    "by_length": {
+      "long": {
+        "count": 2,
+        "covered": 1,
+        "avg_similarity": 0.7372945248280505,
+        "coverage_rate": 0.5
+      },
+      "medium": {
+        "count": 1,
+        "covered": 1,
+        "avg_similarity": 0.7933678515670758,
+        "coverage_rate": 1.0
+      },
+      "short": {
+        "count": 1,
+        "covered": 1,
+        "avg_similarity": 0.7042641843383226,
+        "coverage_rate": 1.0
+      }
+    },
+    "by_position": {
+      "beginning": {
+        "count": 2,
+        "covered": 1,
+        "avg_similarity": 0.7372945248280505,
+        "coverage_rate": 0.5
+      },
+      "middle": {
+        "count": 1,
+        "covered": 1,
+        "avg_similarity": 0.7933678515670758,
+        "coverage_rate": 1.0
+      },
+      "end": {
+        "count": 1,
+        "covered": 1,
+        "avg_similarity": 0.7042641843383226,
+        "coverage_rate": 1.0
+      }
+    },
+    "summary": {
+      "total_chunks": 4,
+      "total_qa_pairs": 11,
+      "threshold_used": 0.7,
+      "insights": [
+        "longチャンクのカバレージが低い（50.0%）",
+        "文書beginning部分のカバレージが低い（50.0%）"
+      ]
+    }
+  },
+  "dataset_type": "cc_news_1per_chunks_20260502_210104",
+  "optimal_thresholds": {
+    "strict": 0.8,
+    "standard": 0.7,
+    "lenient": 0.6
+  }
+}

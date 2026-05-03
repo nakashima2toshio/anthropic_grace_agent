@@ -20,9 +20,9 @@ smart_qa_generator.py - コンテンツを考慮したインテリジェントQ/
 import json
 import logging
 from typing import Dict, List, Optional
-# [MIGRATION] from google import genai / from google.genai import types を削除
-# AnthropicClient を helper_llm 経由で使用
-from helper_llm import create_llm_client
+# [FIXED] モジュールパス修正: helper_llm → helper.helper_llm
+# AnthropicClient を helper.helper_llm 経由で使用
+from helper.helper_llm import create_llm_client
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

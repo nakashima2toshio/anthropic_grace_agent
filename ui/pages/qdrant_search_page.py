@@ -66,8 +66,8 @@ def show_qdrant_search_page():
 
         if collections_info:
             collections_df = pd.DataFrame(collections_info)
-            # FIXED: use_container_width=True を width='stretch' に変更
-            st.dataframe(collections_df, width='stretch', hide_index=True)
+            # FIXED: width='stretch' → use_container_width=True
+            st.dataframe(collections_df, use_container_width=True, hide_index=True)
             st.caption(f"✅ 合計 {len(collections_info)} 個のコレクションが見つかりました")
 
             # 詳細情報を個別に取得して表示
@@ -168,10 +168,10 @@ def show_qdrant_search_page():
                 st.caption(f"📈 表示: {len(data_list)} 件 / 総ポイント数: {total_points}")
 
                 # データフレーム表示（スクロール可能）
-                # FIXED: use_container_width=True を width='stretch' に変更
+                # FIXED: width='stretch' → use_container_width=True
                 st.dataframe(
                     df_preview,
-                    width='stretch',
+                    use_container_width=True,
                     hide_index=True,
                     height=600,  # スクロール可能な高さ
                     column_config={
@@ -378,7 +378,7 @@ def show_qdrant_search_page():
             if hits:
                 best_hit = hits[0]
                 st.divider()
-                st.subheader("🧠 AI応答（Gemini）")
+                st.subheader("🧠 AI応答（Claude）")
 
                 best_payload = best_hit.payload or {}
                 best_question = best_payload.get("question", "")
@@ -411,11 +411,11 @@ def show_qdrant_search_page():
                     st.code(qa_prompt)
 
                 try:
-                    with st.spinner("Gemini AIが回答を生成中..."):
-                        llm_client = create_llm_client(provider="gemini")
+                    with st.spinner("Claude AIが回答を生成中..."):
+                        llm_client = create_llm_client(provider="anthropic")
                         generated_answer = llm_client.generate_content(
                             prompt=qa_prompt,
-                            model="gemini-2.0-flash"
+                            model="claude-sonnet-4-6"
                         )
 
                     if generated_answer and generated_answer.strip():
@@ -439,4 +439,3 @@ def show_qdrant_search_page():
             elif "collection" in str(e).lower() and "not found" in str(e).lower():
                 st.warning(f"コレクション '{collection}' が見つかりません")
                 st.info("「Qdrant登録」でデータを登録してください")
-

@@ -29,6 +29,7 @@ docker compose exec redis redis-cli ping
 
 ```bash
 # 必須
+ANTHROPIC_API_KEY=your_anthropic_api_key
 GEMINI_API_KEY=your_gemini_api_key
 GOOGLE_API_KEY=your_gemini_api_key
 
@@ -64,9 +65,9 @@ Flower（タスクモニタリング UI）: http://localhost:5555
 
 ```bash
 python -m chunking.csv_text_to_chunks_text_csv \
-  --input-file OUTPUT/wikipedia_ja_1per.csv \
-  --output chunks_output \
-  --model gemini-3-flash-preview \
+  --input-file OUTPUT/cc_news_1per.csv \
+  --output output_chunked \
+  --model claude-sonnet-4-6 \
   --workers 8
 ```
 
@@ -77,9 +78,9 @@ python -m chunking.csv_text_to_chunks_text_csv \
 ./start_celery.sh restart -c 8 --flower
 
 python qa_qdrant/make_qa_register_qdrant.py \
-  --input-file chunks_output/wikipedia_ja_1per_chunks_XXXXXXXX_XXXXXX.csv \
-  --collection wikipedia_ja_1per \
-  --use-celery \
+  --input-file output_chunked/cc_news_1per_chunks.csv \
+  --collection cc_news_1per \
+  --model claude-sonnet-4-6 \
   --concurrency 8 \
   --recreate
 ```

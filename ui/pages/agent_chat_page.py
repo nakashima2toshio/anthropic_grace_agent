@@ -16,7 +16,7 @@ from typing import Dict, List, Any, Optional, Union, Tuple
 from qdrant_client import QdrantClient
 
 # Configuration and Tools
-from config import AgentConfig, GeminiConfig
+from config import AgentConfig, ModelConfig
 from services.agent_service import ReActAgent, get_available_collections_from_qdrant_helper
 from qdrant_client_wrapper import get_qdrant_client
 
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 def show_agent_chat_page():
     st.title("🤖 エージェント対話 (Agent Chat)")
-    st.caption("Gemini 3.0 Flash + ReAct + Qdrant Hybrid RAG (Dense + Sparse)")
+    st.caption("Claude Sonnet + ReAct + Qdrant Hybrid RAG (Dense + Sparse)")
 
     # -------------------------------------------------------------------------
     # コレクションデータの表示エリア (Modified)
@@ -86,7 +86,7 @@ def show_agent_chat_page():
                         # データフレーム表示（スクロール可能）
                         st.dataframe(
                             df_preview,
-                            width='stretch',
+                            use_container_width=True,
                             hide_index=True,
                             height=600,  # スクロール可能な高さ
                             column_config={
@@ -110,9 +110,9 @@ def show_agent_chat_page():
         # モデル選択の追加
         selected_model = st.selectbox(
             "使用モデル (Model)",
-            options=GeminiConfig.AVAILABLE_MODELS,
-            index=GeminiConfig.AVAILABLE_MODELS.index(AgentConfig.MODEL_NAME)
-            if AgentConfig.MODEL_NAME in GeminiConfig.AVAILABLE_MODELS else 0
+            options=ModelConfig.AVAILABLE_MODELS,
+            index=ModelConfig.AVAILABLE_MODELS.index(ModelConfig.DEFAULT_MODEL)
+            if ModelConfig.DEFAULT_MODEL in ModelConfig.AVAILABLE_MODELS else 0
         )
 
         # コレクション一覧の取得
@@ -284,4 +284,3 @@ def show_agent_chat_page():
             except Exception as e:
                 st.error(f"エラーが発生しました: {e}")
                 logger.error(f"Chat Error: {e}", exc_info=True)
-

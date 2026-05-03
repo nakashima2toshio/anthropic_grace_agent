@@ -553,10 +553,11 @@ def embed_texts(
 ) -> List[List[float]]:
     """
     テキストをバッチ処理でEmbeddingに変換（Gemini API使用）
+    [NOTE] LLMはAnthropic Claude、EmbeddingはGeminiを使用
 
     Args:
         texts: テキストリスト
-        model: 埋め込みモデル名（互換性のため保持、Geminiを使用）
+        model: 埋め込みモデル名（互換性のため保持）
         batch_size: バッチサイズ
 
     Returns:
@@ -573,10 +574,11 @@ def embed_query(
 ) -> List[float]:
     """
     クエリテキストを埋め込みベクトルに変換（Gemini API使用）
+    [NOTE] LLMはAnthropic Claude、EmbeddingはGeminiを使用
 
     Args:
         text: 埋め込むテキスト
-        model: 使用する埋め込みモデル（互換性のため保持、Geminiを使用）
+        model: 使用する埋め込みモデル（互換性のため保持）
         dims: ベクトルの次元数（Geminiでは3072次元）
 
     Returns:
