@@ -1,4 +1,4 @@
-# Agent RAG ツール使用ガイド
+# Agent RAG (Anthropic) ツール使用ガイド
 
 ---
 
@@ -28,8 +28,10 @@ docker compose exec redis redis-cli ping
 `.env` ファイルに API キーが設定されていることを確認:
 
 ```bash
-# 必須
+# 必須（LLM: チャンク分割 / Q&A生成 / Agent応答）
 ANTHROPIC_API_KEY=your_anthropic_api_key
+
+# 必須（Embedding: Qdrant登録・検索）
 GEMINI_API_KEY=your_gemini_api_key
 GOOGLE_API_KEY=your_gemini_api_key
 
@@ -85,8 +87,6 @@ python qa_qdrant/make_qa_register_qdrant.py \
   --recreate
 ```
 
-### ツール 3: Agent 検索（Web UI）
-
 ```bash
 streamlit run agent_rag.py --server.port 8501
 ```
@@ -119,7 +119,7 @@ CSV ファイルからチャンク作成:
 python -m chunking.csv_text_to_chunks_text_csv \
   --input-file OUTPUT/cc_news_1per.csv \
   --output chunks_output \
-  --model gemini-3-flash-preview \
+  --model claude-sonnet-4-6 \
   --workers 8 \
   --block-size 500
 ```
@@ -130,7 +130,7 @@ python -m chunking.csv_text_to_chunks_text_csv \
 python -m chunking.csv_text_to_chunks_text_csv \
   --input-file ./data/document.txt \
   --output chunks_output \
-  --model gemini-3-flash-preview \
+  --model claude-sonnet-4-6 \
   --workers 8
 ```
 
@@ -140,7 +140,7 @@ python -m chunking.csv_text_to_chunks_text_csv \
 |-----------|-----------|------|
 | `--input-file` | （必須） | 入力ファイル（.txt / .csv） |
 | `--output` | `chunks_output` | 出力ディレクトリ |
-| `--model` | `gemini-3-flash-preview` | 使用する LLM モデル |
+| `--model` | `claude-sonnet-4-6` | 使用する LLM モデル |
 | `--workers` | `8` | 並列ワーカー数（asyncio） |
 | `--block-size` | `1000` | ブロックサイズ（文字数）。大きすぎると MAX_TOKENS エラー |
 | `--text-column` | 自動検出 | CSV のテキストカラム名 |
@@ -164,7 +164,7 @@ python -m chunking.csv_text_to_chunks_text_csv \
 
 ### 2.6 注意事項
 
-Gemini API のレート制限に引っかかる場合は、`--block-size` を小さく（例: 500）、`--workers` を減らして（例: 4）調整してください。
+Anthropic API のレート制限に引っかかる場合は、`--block-size` を小さく（例: 500）、`--workers` を減らして（例: 4）調整してください。
 
 ---
 
@@ -257,7 +257,7 @@ python qa_qdrant/make_qa_register_qdrant.py \
 
 | オプション | デフォルト | 説明 |
 |-----------|-----------|------|
-| `--model` | `gemini-3-flash-preview` | LLM モデル |
+| `--model` | `claude-sonnet-4-6` | LLM モデル |
 | `--use-celery` | `false` | Celery 並列処理を使用 |
 | `-c`, `--concurrency` | `8` | 並列タスク数 |
 | `--batch-chunks` | `3` | 1 API 呼び出しで処理するチャンク数 |
@@ -379,7 +379,7 @@ docker compose up -d
 python -m chunking.csv_text_to_chunks_text_csv \
   --input-file OUTPUT/wikipedia_ja_1per.csv \
   --output chunks_output \
-  --model gemini-3-flash-preview \
+  --model claude-sonnet-4-6 \
   --workers 8
 
 # === Step 2: Q/A 生成 + Qdrant 登録 ===

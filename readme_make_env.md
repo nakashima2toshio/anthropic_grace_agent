@@ -1,4 +1,4 @@
-# Agent RAG (Gemini) 環境構築手順書
+# Agent RAG (Anthropic) 環境構築手順書
 
 **開発マシン:** MacBook Air M2 / 24GB メモリ / macOS
 
@@ -10,21 +10,24 @@
 
 ```mermaid
 graph TD
-    User((ユーザー<br>ブラウザ)) -->|http://localhost:8500| Streamlit[Streamlit アプリケーション<br>agent_rag.py<br>Port: 8500]
+    User((ユーザー<br>ブラウザ)) -->|http://localhost:8501| Streamlit[Streamlit アプリケーション<br>agent_rag.py<br>Port: 8501]
 
-    Streamlit -->|Q&A生成/Embedding| Gemini(Gemini API<br>クラウド)
+    Streamlit -->|Q&A生成 / AI応答| Anthropic(Anthropic API<br>Claude Sonnet<br>クラウド)
+    Streamlit -->|Embedding生成| Gemini(Gemini API<br>gemini-embedding-001<br>クラウド)
     Streamlit -->|ベクトル検索| Qdrant[(Qdrant<br>Port: 6333<br>Docker)]
     Streamlit -.->|タスク登録| Redis[(Redis<br>Port: 6379<br>Docker)]
 
     subgraph Background Jobs
         Celery[[Celery Workers<br>並列処理]]
         Celery -->|タスク取得/結果保存| Redis
-        Celery -->|Q&A生成| Gemini
+        Celery -->|Q&A生成| Anthropic
+        Celery -->|Embedding生成| Gemini
     end
 
     style User fill:#000,stroke:#fff,stroke-width:2px,color:#fff
     style Streamlit fill:#000,stroke:#fff,stroke-width:2px,color:#fff
-    style Gemini fill:#000,stroke:#fff,stroke-width:2px,color:#fff
+    style Anthropic fill:#cc4a00,stroke:#fff,stroke-width:2px,color:#fff
+    style Gemini fill:#1a73e8,stroke:#fff,stroke-width:2px,color:#fff
     style Qdrant fill:#000,stroke:#fff,stroke-width:2px,color:#fff
     style Redis fill:#000,stroke:#fff,stroke-width:2px,color:#fff
     style Celery fill:#000,stroke:#fff,stroke-width:2px,color:#fff
@@ -118,16 +121,14 @@ pip install -r requirements.txt
 # === Web UI ===
 streamlit>=1.35.0
 
-# === Gemini API ===
+# === Anthropic API (LLM: チャンク分割 / Q&A生成 / Agent応答) ===
+anthropic>=0.40.0
+
+# === Gemini API (Embedding: Qdrant登録・検索用) ===
 google-generativeai>=0.8.0
 
 # === ベクトルDB (Qdrant) ===
 qdrant-client>=1.9.0
-
-# === Embedding / NLP ===
-sentence-transformers>=3.0.0
-transformers>=4.40.0
-torch>=2.2.0
 
 # === Rerank（オプション） ===
 cohere>=5.0.0
@@ -146,6 +147,8 @@ pandas>=2.2.0
 numpy>=1.26.0
 requests>=2.31.0
 tqdm>=4.66.0
+tiktoken>=0.7.0
+pydantic>=2.0.0
 
 # === MeCab（オプション: キーワード抽出） ===
 # mecab-python3>=1.0.9
@@ -278,7 +281,10 @@ http://localhost:5555
 プロジェクトルートに `.env` を作成:
 
 ```bash
-# === Gemini API ===
+# === Anthropic API (LLM: チャンク分割 / Q&A生成 / Agent応答) ===
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# === Gemini API (Embedding: Qdrant登録・検索用) ===
 GEMINI_API_KEY=your_gemini_api_key_here
 GOOGLE_API_KEY=your_gemini_api_key_here
 
@@ -296,11 +302,11 @@ CELERY_RESULT_BACKEND=redis://localhost:6379/0
 
 ### 6.2 API キーの取得先
 
-
-| API            | 取得先                                               |
-| -------------- | ---------------------------------------------------- |
-| Gemini API Key | https://aistudio.google.com/apikey                   |
-| Cohere API Key | https://dashboard.cohere.com/api-keys （オプション） |
+| API | 取得先 | 用途 |
+|---|---|---|
+| Anthropic API Key | https://console.anthropic.com/settings/keys | LLM（Q&A生成・Agent応答） |
+| Gemini API Key | https://aistudio.google.com/apikey | Embedding（Qdrant登録・検索） |
+| Cohere API Key | https://dashboard.cohere.com/api-keys | Rerank（オプション） |
 
 ---
 
@@ -347,7 +353,8 @@ docker compose down
 [ ] Docker Desktop が起動している
 [ ] docker compose up -d で Qdrant / Redis が起動
 [ ] curl http://localhost:6333/health が正常応答
-[ ] .env に GEMINI_API_KEY が設定されている
+[ ] .env に ANTHROPIC_API_KEY が設定されている（LLM用）
+[ ] .env に GOOGLE_API_KEY が設定されている（Gemini Embedding用）
 [ ] ./start_celery.sh status でワーカーが起動中
 [ ] streamlit run agent_rag.py が正常起動
 [ ] ブラウザで http://localhost:8501 にアクセス可能
@@ -376,7 +383,9 @@ docker compose exec redis redis-cli ping
 tail -50 logs/celery_qa_worker.log
 ```
 
-### `ModuleNotFoundError` が出る
+### Planner/Executor 初期化エラー
+
+`ANTHROPIC_API_KEY`（LLM用）または `GOOGLE_API_KEY`（Gemini Embedding用）が `.env` に設定されているか確認してください。
 
 ```bash
 # PYTHONPATH にプロジェクトルートを追加
