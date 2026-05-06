@@ -8,7 +8,6 @@ import logging
 import time
 from typing import Dict, Literal, Optional, List, Callable, Any, Generator, cast
 from dataclasses import dataclass, field
-from enum import Enum
 
 from .schemas import (
     ExecutionPlan,
@@ -21,11 +20,8 @@ from .schemas import (
 from .tools import ToolRegistry, ToolResult, create_tool_registry
 from .config import get_config, GraceConfig
 from .confidence import (
-    ConfidenceCalculator,
     ConfidenceFactors,
     ConfidenceScore,
-    LLMSelfEvaluator,
-    ConfidenceAggregator,
     ActionDecision,
     InterventionLevel,
     create_confidence_calculator,
@@ -35,25 +31,45 @@ from .confidence import (
     create_source_agreement_calculator,  # TODO #5: 追加
 )
 from .intervention import (
-    InterventionHandler,
     InterventionRequest,
     InterventionResponse,
     InterventionAction,
     create_intervention_handler,
 )
+from .replan import ReplanOrchestrator, create_replan_orchestrator  # [FIX]: 冒頭へ移動
 
 # === Legacy Agent Integration ===
+# [FIX]: except ブロックにスタブを定義し、ImportError 時の NameError を防ぐ
 try:
     from services.agent_service import ReActAgent, get_available_collections_from_qdrant_helper
-
     LEGACY_AGENT_AVAILABLE = True
 except ImportError:
-    logger = logging.getLogger(__name__)  # Ensure logger exists before warning
-    logger.warning("Failed to import services.agent_service. Legacy agent execution will fail.")
     LEGACY_AGENT_AVAILABLE = False
+
+    class ReActAgent:  # type: ignore[no-redef]
+        """レガシーエージェントスタブ（services.agent_service 未インストール時）"""
+        pass
+
+    def get_available_collections_from_qdrant_helper(*args: Any, **kwargs: Any) -> list:  # type: ignore[misc]
+        raise ImportError("services.agent_service is not available")
 # ================================
 
+# [MIGRATION] create_llm_client を追加（_evaluate_rag_relevance で使用）
+try:
+    from helper.helper_llm import create_llm_client
+    _LLM_CLIENT_AVAILABLE = True
+except ImportError:
+    _LLM_CLIENT_AVAILABLE = False
+
+    def create_llm_client(*args: Any, **kwargs: Any):  # type: ignore[misc]
+        """スタブ: helper_llm 未インストール時の NameError を防ぐ"""
+        raise ImportError("helper.helper_llm is not available")
+
 logger = logging.getLogger(__name__)
+
+# [FIX]: LEGACY_AGENT_AVAILABLE=False 時の警告はここで出力（logger 定義後）
+if not LEGACY_AGENT_AVAILABLE:
+    logger.warning("Failed to import services.agent_service. Legacy agent execution will fail.")
 
 
 # =============================================================================
@@ -114,8 +130,6 @@ class ExecutionState:
 # =============================================================================
 # Executor クラス
 # =============================================================================
-
-from .replan import ReplanOrchestrator, create_replan_orchestrator
 
 
 class Executor:
@@ -201,6 +215,9 @@ class Executor:
         if state is None:
             state = ExecutionState(plan=plan)
             state.start_time = time.time()
+        # [FIX] ③: Optional[ExecutionState] → ExecutionState に型を確定させる
+        # この時点で state は必ず ExecutionState（None の場合は直上で代入済み）
+        assert state is not None, "state must be ExecutionState at this point"
 
         try:
             # 各ステップを順次実行
@@ -798,26 +815,25 @@ class Executor:
         )
 
         try:
-            from google import genai
-            from google.genai import types
+            # [MIGRATION] from google import genai / types → create_llm_client("openai")
+            # Gemini: genai.Client().models.generate_content() + GenerateContentConfig + AFC無効化
+            # OpenAI:  create_llm_client("openai").generate_content() で代替
             import time as _time
 
-            client = genai.Client()
+            if not _LLM_CLIENT_AVAILABLE:
+                raise ImportError("helper_llm.create_llm_client が利用できません")
+
+            llm = create_llm_client("openai", default_model=self.config.llm.model)
             t0 = _time.time()
 
-            response = client.models.generate_content(
-                model=self.config.llm.model,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    temperature=0.0,
-                    max_output_tokens=5,
-                    automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
-                )
-            )
+            # temperature=0.0, max_tokens=5 で YES/NO のみ返させる
+            answer = llm.generate_content(
+                prompt=prompt,
+                temperature=0.0,
+                max_tokens=5,   # [FIX] ④: max_completion_tokens → max_tokens（OpenAIClient 変換ロジックに統一）
+            ).strip().upper()
 
             elapsed = _time.time() - t0
-            answer = (response.text or "").strip().upper() if response else ""
-
             is_relevant = "YES" in answer
             logger.info(
                 f"RAG relevance check: '{answer}' -> {is_relevant} ({elapsed:.1f}s)"

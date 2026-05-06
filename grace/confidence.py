@@ -12,8 +12,8 @@ from enum import Enum
 
 # [MIGRATION] from google import genai / from google.genai import types を削除
 # AnthropicClient は helper_llm 経由、Embedding は helper_embedding 経由で使用
-from helper.helper_llm import create_llm_client
-from helper.helper_embedding import create_embedding_client
+from helper.helper_llm import create_llm_client  # [FIXED] helper_llm → helper.helper_llm
+from helper.helper_embedding import create_embedding_client  # [FIXED] helper_embedding → helper.helper_embedding
 from pydantic import BaseModel
 from .config import get_config, GraceConfig
 
@@ -23,10 +23,9 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # 信頼度要素
 # =============================================================================
-# Gemini Structured Output用スキーマ
-class EvaluationResult(BaseModel):  # ← 追加
-    """LLM信頼度評価の応答スキーマ"""  # ← 追加
-    score: float  # ← 追加
+class EvaluationResult(BaseModel):
+    """LLM信頼度評価の応答スキーマ（OpenAI beta.parse / Anthropic Tool Use 共通）"""
+    score: float
     reason: str
 
 
@@ -454,7 +453,7 @@ class LLMSelfEvaluator:
         self.model_name = model_name or self.config.llm.model
 
         # [MIGRATION] genai.Client() → AnthropicClient (via create_llm_client)
-        self.llm = create_llm_client("anthropic", default_model=self.model_name)
+        self.llm = create_llm_client("openai", default_model=self.model_name)   # [MIGRATION anthropic→openai]
 
         logger.info(f"LLMSelfEvaluator initialized with model: {self.model_name}")
 
@@ -488,20 +487,19 @@ class LLMSelfEvaluator:
             import time as _time
             t0 = _time.time()
 
-            # [MIGRATION] generate_content() + types.GenerateContentConfig
-            #           → llm.generate_content() (Anthropic版)
-            # 戻り値は str が直接返る。AFC 無効化オプションは不要。
+            # OpenAIClient.generate_content() 経由で API を呼び出す。
+            # max_tokens は内部で max_completion_tokens に変換される。
             text = self.llm.generate_content(
                 prompt=prompt,
                 model=self.model_name,
-                max_tokens=10,
+                max_tokens=10,      # [FIX] max_completion_tokens → max_tokens
                 temperature=0.0,
             )
 
             elapsed = _time.time() - t0
             logger.info(f"[API時間] LLMSelfEvaluator.evaluate: {elapsed:.1f}秒")
 
-            # [MIGRATION] Noneガード: generate_content() は str を返すため基本不要だが念のため維持
+            # generate_content() は str を返すため None チェック
             if not text:
                 logger.warning("LLM self-evaluation returned empty response")
                 return 0.5
@@ -539,7 +537,6 @@ class LLMSelfEvaluator:
         Returns:
             Dict: {"score": float, "reason": str}
         """
-        import json
 
         prompt = f"""
 あなたはAIエージェントの実行監視役です。
@@ -586,17 +583,14 @@ class LLMSelfEvaluator:
         try:
             logger.info(f"LLM evaluate_with_factors prompt len: {len(prompt)}")
 
-            # [MIGRATION] generate_content() + response_schema=EvaluationResult (Gemini 構造化出力)
-            #           → generate_structured() で Tool Use に自動変換 (Anthropic)
-            # 戻り値は EvaluationResult インスタンスが直接返る。
-            # ・response.parsed / response.text の手動パース不要
-            # ・Markdownコードブロック除去、JSONDecodeError ハンドリング不要
-            # ・AFC 無効化オプション不要（Anthropic には AFC が存在しない）
+            # OpenAIClient.generate_structured() (beta.chat.completions.parse) を使用。
+            # helper_llm.py の TypeVar T により、戻り値は EvaluationResult として型推論される。
+            # max_tokens は内部で max_completion_tokens に変換される。
             result: EvaluationResult = self.llm.generate_structured(
                 prompt=prompt,
                 response_schema=EvaluationResult,
                 model=self.model_name,
-                max_tokens=200,
+                max_tokens=200,     # [FIX] max_completion_tokens → max_tokens
                 temperature=0.0,
                 system="You are an AI agent monitor. Evaluate the step result and return structured JSON.",
             )
@@ -722,7 +716,7 @@ class QueryCoverageCalculator:
         self.model_name = model_name or self.config.llm.model
 
         # [MIGRATION] genai.Client() → AnthropicClient (via create_llm_client)
-        self.llm = create_llm_client("anthropic", default_model=self.model_name)
+        self.llm = create_llm_client("openai", default_model=self.model_name)   # [MIGRATION anthropic→openai]
 
         logger.info("QueryCoverageCalculator initialized")
 
@@ -743,20 +737,19 @@ class QueryCoverageCalculator:
             import time as _time
             t0 = _time.time()
 
-            # [MIGRATION] generate_content() + types.GenerateContentConfig
-            #           → llm.generate_content() (Anthropic版)
-            # 戻り値は str が直接返る。AFC 無効化オプションは不要。
+            # OpenAIClient.generate_content() 経由で API を呼び出す。
+            # max_tokens は内部で max_completion_tokens に変換される。
             text = self.llm.generate_content(
                 prompt=prompt,
                 model=self.model_name,
-                max_tokens=10,
+                max_tokens=10,      # [FIX] max_completion_tokens → max_tokens
                 temperature=0.0,
             )
 
             elapsed = _time.time() - t0
             logger.info(f"[API時間] QueryCoverageCalculator: {elapsed:.1f}秒")
 
-            # [MIGRATION] Noneガード: generate_content() は str を返すため基本不要だが念のため維持
+            # generate_content() は str を返すため None チェック
             if not text:
                 logger.warning("QueryCoverageCalculator: empty response")
                 return 0.5

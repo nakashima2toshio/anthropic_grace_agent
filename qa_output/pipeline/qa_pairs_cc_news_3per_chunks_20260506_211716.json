@@ -1,0 +1,1010 @@
+[
+  {
+    "question": "ReginaとMelinaはどのような母娘関係ですか？",
+    "answer": "Reginaは40歳のバレリーナで、18歳の娘Melinaと同じColumbia City Balletに在籍しています。ReginaはMelinaがバレエをここまで続けるとは思っていなかったと語っています。",
+    "chunk_id": "cc_news_3per_chunk_0",
+    "topic": "Regina・Melina母娘関係",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ReginaとMelinaがColumbia City Balletで同時に在籍しているのはなぜ特別なのですか？",
+    "answer": "今シーズンはReginaの最後のシーズンであり、同時にMelinaのトレーニーとしての最初のシーズンでもあります。Reginaは3月に引退予定で、この1シーズンだけ二人が同じ舞台に立てる特別な機会となっています。",
+    "chunk_id": "cc_news_3per_chunk_0",
+    "topic": "同時在籍・最初と最後のシーズン",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "くるみ割り人形でReginaとMelinaはどのような役で共演していますか？",
+    "answer": "Reginaはスノークイーンを、MelinaはSnow corpsとして同時にステージに立ちます。また、二人ともアラビアン・ディヴェルティスマンにも出演しており、Reginaは「一緒に踊るのは非常に非現実的な感じ」と述べています。",
+    "chunk_id": "cc_news_3per_chunk_0",
+    "topic": "くるみ割り人形での共演",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Peter Martinsが休職を申請した理由は何ですか？",
+    "answer": "Peter Martinsに向けられた性的ハラスメントの疑惑に関する社内調査が行われる間、NYCBとスクール・オブ・アメリカン・バレエの両方から一時的な休職を申請しました。",
+    "chunk_id": "cc_news_3per_chunk_1",
+    "topic": "Peter Martinsの休職と性的ハラスメント疑惑",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "暫定リーダーシップチームのメンバーは誰ですか？",
+    "answer": "バレエマスターで元プリンシパルダンサーのJonathan Staffordを筆頭に、常駐振付家のJustin Peck、バレエマスターのCraig HallとRebecca Krohnの4名で構成されています。",
+    "chunk_id": "cc_news_3per_chunk_1",
+    "topic": "暫定リーダーシップチームの構成メンバー",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Jonathan StaffordはNYCBの暫定チームでどのような役割を担っていますか？",
+    "answer": "Jonathan Staffordはバレエマスターおよび元プリンシパルダンサーとして、4名からなる暫定チームのリーダーを務めています。",
+    "chunk_id": "cc_news_3per_chunk_1",
+    "topic": "Jonathan Staffordのリーダーとしての役割",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "暫定チームはどのような業務を担当しますか？",
+    "answer": "暫定チームはスケジュール管理、キャスティング、リハーサルの実施など、会社の日々の芸術的なニーズに責任を持ちます。",
+    "chunk_id": "cc_news_3per_chunk_1",
+    "topic": "暫定チームの職務・責任範囲",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ペンシルバニア・バレエとボストン・バレエがスーパーボウルに合わせて行った企画とは何ですか？",
+    "answer": "それぞれが応援するチーム（イーグルスとペイトリオッツ）を応援するため、スーパーボウルをテーマにした振り付けを披露する動画を制作・公開し、対決形式で盛り上げました。",
+    "chunk_id": "cc_news_3per_chunk_2",
+    "topic": "スーパーボウル企画",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ペンシルバニア・バレエのダンサーたちはどのようなパフォーマンスを行いましたか？",
+    "answer": "イーグルスグリーンの衣装を着て、フェッテターン、高いジャンプ、そして「鳥」にちなんだスワンアームを取り入れたテンポの速いルーティンを披露しました。",
+    "chunk_id": "cc_news_3per_chunk_2",
+    "topic": "PABダンサーのパフォーマンス",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ボストン・バレエの動画に出演したダンサーと使用されたバランシン要素について教えてください。",
+    "answer": "プリンシパルのポール・クレイグとソリストのデレク・ダンが出演し、「放蕩息子（Prodigal Son）」の小道具を使ったバランシンの要素を取り入れた内容でした。",
+    "chunk_id": "cc_news_3per_chunk_2",
+    "topic": "Boston Balletの動画内容",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "フットボールを楽しむための新しいお気に入りの方法とは何ですか？",
+    "answer": "これが公式に認められた、フットボールの楽しみに参加するための新しいお気に入りの方法です。",
+    "chunk_id": "cc_news_3per_chunk_3",
+    "topic": "フットボール観戦・参加方法",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Só Dançaのオーディション用シューズコレクションはどこと協力して制作されましたか？",
+    "answer": "Broadway Dance Center（ブロードウェイ・ダンス・センター）とのコラボレーションで制作され、ミュージカル界の著名人たちと共同開発されました。",
+    "chunk_id": "cc_news_3per_chunk_4",
+    "topic": "Broadway Dance Centerコラボ",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Só Dançaの新しいシューズコレクションはどのようなヒールの高さで提供されていますか？",
+    "answer": "2.5インチと3インチの2種類のヒールの高さが用意されており、2つの異なるスタイルで展開されています。",
+    "chunk_id": "cc_news_3per_chunk_4",
+    "topic": "ヒールの種類とサイズ",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Só Dançaのシューズのヒールデザインにはどのような特徴がありますか？",
+    "answer": "ヒールが体の中心（センタード）の下に配置されているため、安定感と自信を持って履くことができる設計になっています。",
+    "chunk_id": "cc_news_3per_chunk_4",
+    "topic": "センタードヒールデザイン",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Rebecca KrohnはNYCBにいつ加入し、どのようにキャリアを積みましたか？",
+    "answer": "1998年秋にアプレンティスとして加入し、徐々に昇格して2012年にプリンシパルダンサーとなりました。14歳でニューヨークに移りアメリカン・バレエ・スクールで訓練を受け、17歳でアプレンティスシップを獲得しました。",
+    "chunk_id": "cc_news_3per_chunk_5",
+    "topic": "Rebecca Krohnの経歴とNYCBキャリア",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Rebecca Krohnの引退公演で披露される最終演目は何ですか？",
+    "answer": "バランシン振付の『ストラヴィンスキー・ヴァイオリン協奏曲』をAmar Ramasarと共に踊ります。この演目は彼女が以前から最も好きな作品の一つでもあります。",
+    "chunk_id": "cc_news_3per_chunk_5",
+    "topic": "引退公演と最終演目",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "引退後、Rebecca KrohnはNYCBでどのような新しい役割を担いますか？",
+    "answer": "引退公演の翌月曜日からバレエマスターとしてNYCBのスタジオに戻ります。ダンサーとしてのキャリアを終えた後も、新たな立場で会社に貢献し続けます。",
+    "chunk_id": "cc_news_3per_chunk_5",
+    "topic": "バレエマスターへの転身",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Rebecca Krohnが特に好きな演目や役柄を教えてください。",
+    "answer": "バランシンの『ストラヴィンスキー・ヴァイオリン協奏曲』『ムーヴメンツ・フォー・ピアノ・アンド・オーケストラ』『アゴン』、ロビンズの『ダンシズ・アット・ア・ギャザリング』などを挙げています。特にバランシンの白黒バレエが好きと述べています。",
+    "chunk_id": "cc_news_3per_chunk_5",
+    "topic": "お気に入りの演目・役柄",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ステージ上で友人やダンスパートナーと共演することで感じる特別な体験とは何ですか？",
+    "answer": "友人と舞台を共有することで、驚くほどの信頼感と自発性が生まれ、深いつながりを感じられる。これは友人関係とはまた別の特別な経験であり、決して忘れられないものだと語っています。",
+    "chunk_id": "cc_news_3per_chunk_6",
+    "topic": "舞台上の特別な経験",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ソリストやプリンシパルに昇格したことで、カンパニー内での関係性はどのように変化しましたか？",
+    "answer": "昇格するにつれてカンパニーが若返って見えるようになり、コール・ド・バレエのダンサーたちとの関係が変化しました。若いダンサーが憧れられる存在になりたいと考えるようになりました。",
+    "chunk_id": "cc_news_3per_chunk_6",
+    "topic": "キャリアの変化と役割",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "プリンシパルになった後、若いダンサーたちに対してどのようなサポートをしたいと考えていますか？",
+    "answer": "若いダンサーたちが尊敬できる存在になりたいと思い、積極的に関わりを持ち、サポートやアドバイスを提供したいと考えています。",
+    "chunk_id": "cc_news_3per_chunk_6",
+    "topic": "若手へのメンターシップ",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バレエ団への残留をいつ頃から考え始め、どのように決断しましたか？",
+    "answer": "数年前から頭の片隅にあったが、正式に検討したのは約1年前。Peter Martinsに自分の考えを伝え、彼の意見を聞いたところ、素晴らしいアイデアだと賛同を得て決断した。",
+    "chunk_id": "cc_news_3per_chunk_7",
+    "topic": "残留決断のプロセス",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Peter Martinsへの相談はどのようなものでしたか？彼の反応は？",
+    "answer": "少し緊張しながらも自分の考えをPeter Martinsに伝えた。彼は残留・新役割への移行を「素晴らしいアイデア」と評価し、前向きに受け入れてくれた。",
+    "chunk_id": "cc_news_3per_chunk_7",
+    "topic": "Peter Martinsへの相談",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "新しいバレエマスター・指導者としての役割で最も楽しみにしていることは何ですか？",
+    "answer": "ダンサーたちの才能を育てることと、レパートリーの素晴らしいバレエ作品を未来の新しいダンサーたちへ受け継いでいくことを最も楽しみにしている。",
+    "chunk_id": "cc_news_3per_chunk_7",
+    "topic": "新しい役割への展望",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "指導スタイルの手本としているメンターは誰ですか？",
+    "answer": "Karin von Aroldingenの作品への尽きることない情熱と、Susan Hendlが持つ各ダンサーの個性や女性らしさを引き出す才能の両方から大きなインスピレーションを受けている。",
+    "chunk_id": "cc_news_3per_chunk_7",
+    "topic": "メンターシップの影響",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バレエ引退後に楽しみにしていることは何ですか？",
+    "answer": "美術館を自由に訪れることと、料理をしてディナーパーティーを開催することを楽しみにしています。",
+    "chunk_id": "cc_news_3per_chunk_8",
+    "topic": "バレエ引退後の生活",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ダンサー時代に美術館へ行くことを控えていた理由は何ですか？",
+    "answer": "踊っている間は、休日に一日中足を使いたくなかったため、美術館などで長時間歩き回ることを避けていました。",
+    "chunk_id": "cc_news_3per_chunk_8",
+    "topic": "ダンサー時代の体への配慮",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "引退後は料理についてどのような計画を持っていますか？",
+    "answer": "以前より多く料理をする時間が取れるようになるため、ディナーパーティーをより頻繁に開催したいと考えています。",
+    "chunk_id": "cc_news_3per_chunk_8",
+    "topic": "料理とディナーパーティーの開催",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バランシンの「セレナーデ」を踊るクローン・アンド・カンパニーの写真を撮影したのは誰ですか？",
+    "answer": "ポール・コルニク（Paul Kolnik）が撮影し、NYCBの提供となっています。",
+    "chunk_id": "cc_news_3per_chunk_9",
+    "topic": "Paul Kolnik",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バレエが若いダンサーに与える最も重要なものは何ですか？",
+    "answer": "バレエが若いダンサーに与える最も重要なものは「規律（ディシプリン）」です。バレエのクラスで毎日教えられるこの資質は、ダンサーにとって非常に価値あるものとされています。",
+    "chunk_id": "cc_news_3per_chunk_10",
+    "topic": "バレエと規律",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バレエで学んだ規律は、ダンスを続けない人にも役立ちますか？",
+    "answer": "はい、役立ちます。バレエで身につく規律は、ダンスを続ける場合でも、他の道に進む場合でも、人として持つべき非常に価値ある（invaluable）資質とされています。",
+    "chunk_id": "cc_news_3per_chunk_10",
+    "topic": "規律の普遍的価値",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "調子が悪い日や体の動きが思わしくない日は、どのように向き合えばよいですか？",
+    "answer": "毎日を新たなスタートとして捉えることが大切です。調子が悪い日もありますが、気持ちをリセットし、ポジティブな姿勢で前に進むことが重要とされています。",
+    "chunk_id": "cc_news_3per_chunk_10",
+    "topic": "ポジティブな姿勢",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Roy KaiserはNevada Ballet Theatreで誰の後任として新芸術監督に就任しますか？",
+    "answer": "Roy KaiserはJames Canfieldの後任として、ラスベガスを拠点とするNevada Ballet Theatreの新芸術監督に就任します。彼はNBT46年の歴史において4人目の芸術監督となります。",
+    "chunk_id": "cc_news_3per_chunk_11",
+    "topic": "NBT新芸術監督就任",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Roy KaiserがPennsylvania Balletの芸術監督に就任したのはいつで、どのようなキャリアを経てその地位に就きましたか？",
+    "answer": "KaiserはPennsylvania Balletでプリンシパルダンサーとして頭角を現し、その後バレエマスターを経て、1995年に同カンパニーの芸術監督に就任しました。",
+    "chunk_id": "cc_news_3per_chunk_11",
+    "topic": "Pennsylvania Balletキャリア経歴",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Roy KaiserがPennsylvania Balletの芸術監督を務めた期間中、レパートリーにどのような実績を残しましたか？",
+    "answer": "Kaiserのリーダーシップのもと、Pennsylvania Balletは90本の新作バレエと35本の世界初演をレパートリーに加えるという顕著な実績を達成しました。",
+    "chunk_id": "cc_news_3per_chunk_11",
+    "topic": "Pennsylvania Ballet在任実績",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Roy KaiserがPennsylvania Balletの芸術監督を退任したのはいつで、その後どのような経緯でNBTに就任することになりましたか？",
+    "answer": "Kaiserは2014年にPennsylvania Balletの芸術監督を退任し、ダンス界を驚かせました。その後、Nevada Ballet Theatreの新芸術監督就任が発表され、再びトップの座に就くことになりました。",
+    "chunk_id": "cc_news_3per_chunk_11",
+    "topic": "引き継ぎ・歴史的位置づけ",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "NDTはどのような規模のバレエ団ですか？",
+    "answer": "NDTは州内最大のプロバレエ団およびダンスアカデミーで、35名のカンパニーダンサーと活発なバレエ学校を擁しています。",
+    "chunk_id": "cc_news_3per_chunk_12",
+    "topic": "NDTの規模と概要",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "KaiserがNDTに就任直後に手がけるプログラムは何ですか？",
+    "answer": "Cirque du Soleilとのコラボレーション作品「A Choreographer's Showcase」の10周年記念公演を今週末に開幕します。",
+    "chunk_id": "cc_news_3per_chunk_12",
+    "topic": "就任直後のプログラム",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "11月のClassic Americanaプログラムではどのような作品が上演されますか？",
+    "answer": "バランシン作品の「Serenade」と「Western Symphony」、およびポール・テイラーの「Company B」が上演されます。",
+    "chunk_id": "cc_news_3per_chunk_12",
+    "topic": "Classic Americanaプログラム",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Peter MartinsがNYCBを退任したのはいつですか？",
+    "answer": "Peter Martinsは新年の始まりに退任しました。NYCBはその後、初めて彼なしでスプリングシーズンを迎え、不透明な状況の中で前進することになりました。",
+    "chunk_id": "cc_news_3per_chunk_13",
+    "topic": "Peter Martins退任",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Peter Martinsの退任後、新ディレクターの選考プロセスについてダンサーたちはどの程度情報を持っていますか？",
+    "answer": "ダンサーたちは選考プロセスや今後の計画についてほとんど情報を持っていません。誰が新ディレクターになるのか、いつ決まるのか、ダンサーが意見を言えるのかなど、多くの疑問が未解決のままです。",
+    "chunk_id": "cc_news_3per_chunk_13",
+    "topic": "新ディレクター選考プロセス",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Peter Martinsの不在はダンサーたちにどのような懸念や不安をもたらしましたか？",
+    "answer": "ダンサーたちは、新ディレクターによる大規模な変革の可能性や、仕事を失うリスク、キャスティングの変更など、多くの不安を抱えています。将来の方向性が不明確なため、不安が広がっています。",
+    "chunk_id": "cc_news_3per_chunk_13",
+    "topic": "ダンサーの懸念と不安",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バランシン作品のリハーサルにおいて、Peter Martinsはどのような役割を果たしていましたか？",
+    "answer": "Martinsは日常のリハーサルには滅多に参加しませんでしたが、本番前の最終ドレスリハーサルには必ず立ち会い、バランシン自身の言葉を引用しながら、難しいパートナリングや回転の連続などについて的確なアドバイスを提供していました。",
+    "chunk_id": "cc_news_3per_chunk_13",
+    "topic": "バランシン作品のリハーサル",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "「くるみ割り人形とネズミの王様」を書いたのは誰で、いつ発表されましたか？",
+    "answer": "ドイツの作家E.T.A.ホフマンが1816年に執筆した、不気味で暗い雰囲気の物語です。",
+    "chunk_id": "cc_news_3per_chunk_14",
+    "topic": "ホフマン原作",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "アレクサンドル・デュマはくるみ割り人形の物語をどのように改変しましたか？",
+    "answer": "フランスの作家デュマは約30年後に原作を翻案し、内容を明るくし、登場人物の描写を柔らかくしました。",
+    "chunk_id": "cc_news_3per_chunk_14",
+    "topic": "デュマによる翻案",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "デュマの翻案で主人公の名前はどのように変更されましたか？",
+    "answer": "「マリー・シュタールバウム（Marie Stahlbaum）」から「クララ・ジルバーハウス（Clara Silberhaus）」に変更されました。",
+    "chunk_id": "cc_news_3per_chunk_14",
+    "topic": "主人公名の変更",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "「Marie Stahlbaum」と「Clara Silberhaus」それぞれの名前の意味と象徴は何ですか？",
+    "answer": "「Stahlbaum」は「鋼鉄の木」を意味し抑圧的な家庭を象徴、「Silberhaus」は「銀の家」を意味し輝く魔法に満ちた豪華な家を象徴します。",
+    "chunk_id": "cc_news_3per_chunk_14",
+    "topic": "名前の意味と象徴",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "くるみ割り人形の初演はいつ、どこで行われましたか？",
+    "answer": "1892年にサンクトペテルブルクのマリインスキー劇場で初演されました。振付はマリウス・ペティパ、作曲はピョートル・イリイチ・チャイコフスキーが担当しました。",
+    "chunk_id": "cc_news_3per_chunk_15",
+    "topic": "くるみ割り人形初演",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "くるみ割り人形の振付がペティパからイワノフに引き継がれた理由は何ですか？",
+    "answer": "振付家マリウス・ペティパが振付中に病気になったため、助手のレフ・イワノフに振付の担当を引き継ぎました。",
+    "chunk_id": "cc_news_3per_chunk_15",
+    "topic": "振付引き継ぎ",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "1892年の初演に対する批評家の反応はどのようなものでしたか？",
+    "answer": "批評家の反応は否定的でした。バレエ愛好家たちは作品が不均一だと感じ、第1幕に主役のバレリーナがいないことを嘆き、歴史的な物語と比べてストーリーが軽すぎると批判しました。",
+    "chunk_id": "cc_news_3per_chunk_15",
+    "topic": "初演への批評",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "くるみ割り人形がロシア国外で初めて大きく上演されたのはいつ、どこですか？",
+    "answer": "1934年にロンドンで初めて大きく上演されました。元マリインスキーのバレエマスター、ニコラス・セルゲーエフがヴィック＝ウェルズ・バレエ（現ロイヤル・バレエ）で上演しました。",
+    "chunk_id": "cc_news_3per_chunk_15",
+    "topic": "ロシア国外への普及",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "アメリカで初めて全幕版のくるみ割り人形が上演されたのはいつ、誰によってですか？",
+    "answer": "1944年に、サンフランシスコ・バレエの創設芸術監督ウィリアム・クリステンセンによってアメリカ初の全幕版くるみ割り人形が振付・上演されました。",
+    "chunk_id": "cc_news_3per_chunk_15",
+    "topic": "アメリカ全幕初演",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バランシンがくるみ割り人形をクリスマスシーズンの定番にしたと言われる理由は何ですか？",
+    "answer": "舞踊評論家ロバート・グレスコヴィッチによると、バランシンは「このバレエをクリスマスシーズンとバレエ団のレパートリーの定番にした責任者」とされており、ニューヨーク・シティ・バレエが上演時期を12月に移したことが大きな要因です。",
+    "chunk_id": "cc_news_3per_chunk_16",
+    "topic": "バランシンとクリスマスシーズンへの定着",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ニューヨーク・シティ・バレエがバランシン版くるみ割り人形を初めて上演したのはいつですか？",
+    "answer": "1954年2月に初演されましたが、ホリデーシーズンへの適性をすぐに認識し、翌年からは12月に上演時期を移しました。",
+    "chunk_id": "cc_news_3per_chunk_16",
+    "topic": "ニューヨーク・シティ・バレエ初演",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ジョフリー・バレエやワシントン・バレエはくるみ割り人形にどのような独自アレンジを加えていますか？",
+    "answer": "ジョフリー・バレエのクリストファー・ウィールドン版はシカゴの1893年万博を舞台にしており、ワシントン・バレエ版にはジョージ・ワシントンやジョージ三世などアメリカの歴史的人物が登場します。",
+    "chunk_id": "cc_news_3per_chunk_16",
+    "topic": "地域バレエ団による独自アレンジ",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "くるみ割り人形はバレエ団の財政にどれほど貢献していますか？",
+    "answer": "昨年、サンフランシスコ・バレエは87,926枚、ボストン・バレエは92,907枚のチケットを販売しており、くるみ割り人形は全米のバレエ団が年間を通じて革新的な作品を上演するための財政的支柱となっています。",
+    "chunk_id": "cc_news_3per_chunk_16",
+    "topic": "くるみ割り人形の財政的貢献",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "1892年のオリジナル台本におけるクララの迎え方に関する秘話とは何ですか？",
+    "answer": "舞踊史家ダグ・フリントンによると、1892年のオリジナル台本ではくるみ割り人形に2人の姉妹がおり、お菓子の国でクララを温かいハグで迎えるという設定があったとされています。",
+    "chunk_id": "cc_news_3per_chunk_16",
+    "topic": "1892年オリジナル台本の秘話",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "キャンディケイン・バリエーションの振付師は誰ですか？",
+    "answer": "キャンディケイン・バリエーションは、1892年の初演で自らこの役を踊ったアレクサンドル・シリャーエフによって振付けられました。",
+    "chunk_id": "cc_news_3per_chunk_17",
+    "topic": "キャンディケイン振付師",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "アレクサンドル・シリャーエフは手描きアニメーションとどのような関係がありますか？",
+    "answer": "舞踊評論家のミンディ・アロフによると、シリャーエフは「手描きアニメーションの最初の実践者である可能性がある」とされており、振付を連続した手描きの絵で記録し、動きとして映写できる形にしていました。",
+    "chunk_id": "cc_news_3per_chunk_17",
+    "topic": "シリャーエフとアニメーション",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バランシン版くるみ割り人形において、シリャーエフの振付はどのように扱われていますか？",
+    "answer": "バランシンは自身のくるみ割り人形にシリャーエフのオリジナル振付をそのまま取り入れており、1892年当時の振付が継承されています。",
+    "chunk_id": "cc_news_3per_chunk_17",
+    "topic": "バランシンとオリジナル振付継承",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "くるみ割り人形の金平糖の精のソロで使われているあの幻想的な音色は、どの楽器によるものですか？",
+    "answer": "チェレスタ（celesta）という珍しい楽器です。チャイコフスキーがフランスで初めてその音を聴き、作品に取り入れました。",
+    "chunk_id": "cc_news_3per_chunk_18",
+    "topic": "チェレスタと金平糖の精",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "チャイコフスキーはどのようにしてチェレスタを入手したのですか？",
+    "answer": "チャイコフスキーは秘密裏にチェレスタを取り寄せたとされています。フリントン氏によると、「彼は事実上こっそりと楽器を送らせた」とのことです。",
+    "chunk_id": "cc_news_3per_chunk_18",
+    "topic": "チェレスタの秘密裏の入手",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バランシンの1954年初演において、クリスマスツリーにいくら費やされましたか？",
+    "answer": "バランシンは初演の予算4万ドルのうち、クリスマスツリーだけに2万5千ドルを費やしました。",
+    "chunk_id": "cc_news_3per_chunk_19",
+    "topic": "初演予算とツリー支出",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バランシンはクリスマスツリーなしでバレエを上演できないかと聞かれたとき、何と答えましたか？",
+    "answer": "バランシンは「バレエはツリーそのものだ」と答え、ツリーがバレエの本質であることを示しました。",
+    "chunk_id": "cc_news_3per_chunk_19",
+    "topic": "バランシンのツリー哲学",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "現在のニューヨーク・シティ・バレエで使用されているクリスマスツリーの重さと高さはどのくらいですか？",
+    "answer": "現在のツリーは重さ1トン、最大高さ41フィート（約12.5メートル）に達します。",
+    "chunk_id": "cc_news_3per_chunk_19",
+    "topic": "現在のツリー仕様",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "1892年の「くるみ割り人形」の衣装スケッチを描いたのは誰ですか？",
+    "answer": "イワン・フセヴォロジスキー（Ivan Vsevolozhsky）が描きました。このスケッチは金平糖の精の従者たちの衣装を描いたものです。",
+    "chunk_id": "cc_news_3per_chunk_20",
+    "topic": "衣装スケッチ作者",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "騎士（カヴァリエ）のバリエーションは、もともとどのように踊られていたのですか？",
+    "answer": "振付の記録によると、果物・花・夢などをテーマにした8人の女性妖精による演技として踊られていたとされています。",
+    "chunk_id": "cc_news_3per_chunk_20",
+    "topic": "騎士バリエーションの原型",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "パーヴェル・ゲルトが自身でバリエーションを踊らなかった理由は何ですか？",
+    "answer": "フリントンによると、この役を初演したゲルトはバリエーションを自ら踊るには年齢的に高齢すぎたためと考えられています。",
+    "chunk_id": "cc_news_3per_chunk_20",
+    "topic": "ゲルトが踊らなかった理由",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バランシンのグラン・パ・ド・ドゥにおけるトゥスライドとはどのような動作ですか？",
+    "answer": "リード・バレリーナがアラベスクのポーズを保ちながら、王子に引かれてポワントで舞台を横切るように滑る動作です。",
+    "chunk_id": "cc_news_3per_chunk_21",
+    "topic": "トゥスライドの動作",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バレリーナはトゥスライドの際にどのような姿勢を維持しますか？",
+    "answer": "バレリーナはアラベスクのポーズを保ちながら、ポワント（つま先立ち）で舞台上を滑ります。",
+    "chunk_id": "cc_news_3per_chunk_21",
+    "topic": "アラベスクとポワント技法",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バランシンのグラン・パ・ド・ドゥのトゥスライドはどこから引用されたものですか？",
+    "answer": "フリントンによると、バランシンはこのスライドをイワノフのオリジナル振付から取り入れたとされています。",
+    "chunk_id": "cc_news_3per_chunk_21",
+    "topic": "イワノフ振付からの引用",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "くるみ割り人形に登場する金平糖の精の王子の元の名前は何ですか？",
+    "answer": "金平糖の精の王子の元の名前は「プリンス・コクルーシュ（Prince Coqueluche）」です。",
+    "chunk_id": "cc_news_3per_chunk_22",
+    "topic": "Prince Coqueluche",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "「Coqueluche」はフランス語でどのような意味を持ちますか？",
+    "answer": "「Coqueluche」はフランス語で「百日咳（whooping cough）」を意味します。この名前はのど飴（トローチ）の一種を指していた可能性があるとされています。",
+    "chunk_id": "cc_news_3per_chunk_22",
+    "topic": "Coquelucheの意味と由来",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "NYCBのユニティ・フェランとサイラス・ファーリーが着用しているカリンスカの衣装は何ですか？",
+    "answer": "ニューヨーク・シティ・バレエ（NYCB）のユニティ・フェランとサイラス・ファーリーは、カリンスカのホットチョコレートの衣装を着用しています。この写真はポール・コルニクが撮影しました。",
+    "chunk_id": "cc_news_3per_chunk_23",
+    "topic": "カリンスカのホットチョコレート衣装",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "北京舞蹈学院にはダンススタジオがいくつありますか？",
+    "answer": "北京舞蹈学院には広々としたダンススタジオが60室あります。",
+    "chunk_id": "cc_news_3per_chunk_24",
+    "topic": "北京舞蹈学院の施設",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "学生のPei Yu Mengはどのような技術的特徴を持っていますか？",
+    "answer": "Pei Yu Mengは強いクラシックの基礎とクリーンなバレエのラインに加え、しなやかなコーディネーションとレーザーのように鋭い集中力を持ち、洗練された輝きのあるダンスを披露します。",
+    "chunk_id": "cc_news_3per_chunk_24",
+    "topic": "Pei Yu Mengの技術的特徴",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "北京舞蹈学院ではどのような練習スタイルや指導方法が取られていますか？",
+    "answer": "学生たちは同じスタジオにいながらも各自個別に練習し、教師が部屋の前から修正点を声に出して指導します。完璧を追求するため、習得した動作は昼食の時間まで繰り返し練習します。",
+    "chunk_id": "cc_news_3per_chunk_24",
+    "topic": "練習文化・指導スタイル",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "北京舞蹈学院（BDA）はいつ、どのような目的で設立されましたか？",
+    "answer": "BDAは1954年に中国共産党政府によって設立された、国家が全額資金を提供するプロフェッショナル訓練校です。バレエ、中国古典舞踊、社交ダンス、ミュージカルシアターの4学科に約3,000人の学生と275人の専任教師を擁しています。",
+    "chunk_id": "cc_news_3per_chunk_25",
+    "topic": "BDAの設立背景と規模",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "BDAのバレエプログラムはどのような構成になっていますか？",
+    "answer": "BDAのバレエプログラムは、7年間の下位課程と4年間のプロフェッショナル学士課程から構成されています。現在、専門バレエプログラムには約100名の学生が在籍しています。",
+    "chunk_id": "cc_news_3per_chunk_25",
+    "topic": "バレエプログラムの構成",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "BDAの専門課程への入学審査はどのように行われますか？",
+    "answer": "毎年16〜18歳の数百人の受験生が北京で2日間にわたりオーディションを受け、クラシックおよびコンテンポラリーの演目、即興演技を披露し、学力試験も受けます。技術力だけでなく、ダンス分野全般で活躍できる芸術家としての資質が求められます。",
+    "chunk_id": "cc_news_3per_chunk_25",
+    "topic": "入学審査プロセス",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "2011年以降、BDAのバレエ教育方針はどのように変わりましたか？",
+    "answer": "BDAのバレエプログラムはロシアスタイルの技術育成で長く知られていましたが、2011年以降は中国舞踊の伝統や西洋コンテンポラリーバレエの振付家の作品に関する知識を広げる取り組みを積極的に進めています。",
+    "chunk_id": "cc_news_3per_chunk_25",
+    "topic": "カリキュラムの変革",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "BDAは外国人学生を受け入れていますか？受け入れが少ない理由は何ですか？",
+    "answer": "BDAは外国人の入学願書を受け付けていますが、留学生の受け入れは多くありません。その理由は、学力入試で中国語能力が問われ、ほとんどの授業が中国語で行われるためです。ただし、世界各地のバレエ学校との交換プログラムには参加しています。",
+    "chunk_id": "cc_news_3per_chunk_25",
+    "topic": "外国人学生の受け入れ",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "BDAの1日のスケジュールはどのようになっていますか？",
+    "answer": "朝8時のテクニッククラスから始まり、バレエ、中国舞踊、コンテンポラリー、レパートリー、パ・ド・ドゥのほか、舞踊史・解剖学・音楽鑑賞・怪我予防の授業が続き、リハーサルは夜9時まで及ぶこともあります。",
+    "chunk_id": "cc_news_3per_chunk_26",
+    "topic": "BDAの日課・カリキュラム構成",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "BDAでヴァガノワメソッドと中国舞踊はどのように組み合わされていますか？",
+    "answer": "ヴァガノワメソッドによる厳格なバレエ技術訓練に加え、中国舞踊の円を描く上半身の動きが取り入れられており、アティチュード・プロムナード中に頭を円回しする動きなど、独自の協調性がバレエ技術を補完しています。",
+    "chunk_id": "cc_news_3per_chunk_26",
+    "topic": "ヴァガノワメソッドと中国舞踊の融合",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "BDAの学生が才能を発掘してもらう主な機会は何ですか？",
+    "answer": "国際オーディションに参加しない代わりに、年次公演が才能発掘の場となっています。中国国立バレエ団を含む周辺の中国カンパニーのディレクターがスカウトのために観覧に訪れます。",
+    "chunk_id": "cc_news_3per_chunk_26",
+    "topic": "パフォーマンスと才能発掘の仕組み",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "西洋の振付家との協働はBDA学生にどのような影響を与えましたか？",
+    "answer": "2011年以前は学生が自由に動いたり新しい動きに適応することが難しかったが、ポール・テイラーやヨルマ・エロ、クリストファー・ウィールドンらの作品を学ぶことで、新たな可能性に目が開かれ、全体的な能力が向上しました。",
+    "chunk_id": "cc_news_3per_chunk_26",
+    "topic": "西洋振付家との協働と現代バレエの導入",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "BDAの学生の生活環境と訓練の強度はどのようなものですか？",
+    "answer": "学生はキャンパス内の寮に住み、自由時間はほとんどなく、卒業まで学校を「家」と考えています。リハーサルでは4名のコーチが細部を指摘し、アンダースタディなしで本番同様の集中した練習が行われます。",
+    "chunk_id": "cc_news_3per_chunk_26",
+    "topic": "BDA学生の生活環境と訓練強度",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "BDAの卒業生はどのような就職先に進むのですか？",
+    "answer": "最も優秀な学生のみがバレエ団と契約を結びますが、その他の卒業生はBDAや周辺のダンス学校で教師などダンス関連の職に就きます。",
+    "chunk_id": "cc_news_3per_chunk_27",
+    "topic": "BDA卒業生の就職先と進路",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "BDAの卒業生は何歳で社会に出るのですか？",
+    "answer": "BDAの卒業生は20〜22歳でプロとしてのキャリアをスタートします。これは西洋のバレエ学校の卒業生と比べてやや年齢が高い傾向があります。",
+    "chunk_id": "cc_news_3per_chunk_27",
+    "topic": "卒業生の年齢と就職状況",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "BDAはなぜ競技会への参加を積極的に推進していないのですか？",
+    "answer": "競技会の準備は個々の生徒に多くの注意を向ける必要があるのに対し、公演は学生全体を育てられるため、学校は競技会よりも公演を重視しています。ただし競技会は国際的な露出の機会にもなっています。",
+    "chunk_id": "cc_news_3per_chunk_27",
+    "topic": "競技会への方針と国際的露出",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "アメリカのバレエ団に在籍しているBDA卒業生には誰がいますか？",
+    "answer": "サンフランシスコ・バレエのソリストであるWei WangとWanting Zhao、ABTのコール・ド・バレエメンバーであるZhiyao ZhangとXuelan Luが在籍しています。",
+    "chunk_id": "cc_news_3per_chunk_27",
+    "topic": "海外就職・アメリカのバレエ団在籍卒業生",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "男性古典中国舞踊クラスの写真を撮影したのは誰ですか？",
+    "answer": "男性古典中国舞踊クラスの写真はLucy Van Cleefによって撮影されました。",
+    "chunk_id": "cc_news_3per_chunk_28",
+    "topic": "写真クレジット",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "BDAにブルノンヴィル・スタイルを導入したのは誰ですか？",
+    "answer": "元ロイヤル・デンマーク・バレエ芸術監督のフランク・アンダーセンです。2002年からゲスト教師として指導し、2012年には教授職を授与されました。",
+    "chunk_id": "cc_news_3per_chunk_29",
+    "topic": "フランク・アンダーセンの経歴",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "BDAの学生がこれまでに上演したブルノンヴィル作品にはどのようなものがありますか？",
+    "answer": "『ナポリ』第3幕、『ラ・ヴェンタナ』、『コンセルヴァトワール』などを上演し、2015年には中国国立バレエ団の『ラ・シルフィード』にも出演しました。",
+    "chunk_id": "cc_news_3per_chunk_29",
+    "topic": "BDA学生の上演実績",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "アンダーセンはブルノンヴィル技法をどのように指導していますか？",
+    "answer": "レパートリーとデンマークのマイムを通じて指導しています。技法クラスは時間が許す場合に行われますが、主にレパートリーを通じて技術を伝えています。",
+    "chunk_id": "cc_news_3per_chunk_29",
+    "topic": "ブルノンヴィル技法の指導方法",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "アンダーセンがマイム指導で最も重視していることは何ですか？",
+    "answer": "「マイムをリアルに見せること」が最重要だと述べています。若いダンサーは大げさに演じがちなため、言葉で伝えられない場合は実際に見せることで指導しています。",
+    "chunk_id": "cc_news_3per_chunk_29",
+    "topic": "マイムと表現の指導",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Isabella BoylstonとJames Whitesideが互いを「Cindy」と呼ぶニックネームの由来は何ですか？",
+    "answer": "テキストでは「Cindy」というニックネームの存在と、二人がFacebook Liveでその由来について話したことが言及されていますが、具体的な由来の詳細は記載されていません。動画内で説明されています。",
+    "chunk_id": "cc_news_3per_chunk_30",
+    "topic": "Cindyニックネーム",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Isabella BoylstonがKennedy Centerで経験した最悪の思い出とはどのようなものですか？",
+    "answer": "「ラ・バヤデール」第1幕の終盤でフェッテを踊っている最中に舞台上で転倒してしまったエピソードが、Kennedy Centerでの最悪の思い出として挙げられています。",
+    "chunk_id": "cc_news_3per_chunk_30",
+    "topic": "Kennedy Center転倒エピソード",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Isabella Boylstonはパリオペラバレエへのゲスト出演についてどのような経験を語っていますか？",
+    "answer": "BoylstonはFacebook Liveの中でパリオペラバレエへのゲスト出演経験について語っています。ただし、テキストには詳細な内容は記載されておらず、動画内で詳しく説明されています。",
+    "chunk_id": "cc_news_3per_chunk_30",
+    "topic": "パリオペラバレエゲスト出演",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "クラシックバレエとコンテンポラリー振付を習得する際の違いについて、二人はどのように述べていますか？",
+    "answer": "BoylstonとWhitesideはFacebook Liveの中でクラシックとコンテンポラリー振付を習得する際の違いについて話し合っています。詳細は動画内で語られており、テキストには具体的な内容は記載されていません。",
+    "chunk_id": "cc_news_3per_chunk_30",
+    "topic": "クラシックとコンテンポラリー習得の違い",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ボリショイバレエによるジョン・ノイマイヤーの「アンナ・カレーニナ」の初演はいつですか？",
+    "answer": "ボリショイバレエによる「アンナ・カレーニナ」の初演は3月23日に予定されています。世界初演は前年7月にハンブルク・バレエによって行われました。",
+    "chunk_id": "cc_news_3per_chunk_31",
+    "topic": "ボリショイ初演日程",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "「アンナ・カレーニナ」はどのバレエ団が共同制作しましたか？",
+    "answer": "ハンブルク・バレエ、カナダ国立バレエ（NBoC）、ボリショイバレエの3団体が共同制作しました。カナダ国立バレエの初演は11月に予定されています。",
+    "chunk_id": "cc_news_3per_chunk_31",
+    "topic": "共同制作バレエ団",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ジョン・ノイマイヤーが「アンナ・カレーニナ」を創作するきっかけとなったインスピレーションは何ですか？",
+    "answer": "ノイマイヤーは「椿姫」の制作でスヴェトラーナ・ザハロワと共に仕事をした際に、「アンナ・カレーニナ」創作の最初のインスピレーションを得ました。",
+    "chunk_id": "cc_news_3per_chunk_31",
+    "topic": "創作インスピレーション",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ボリショイバレエの「アンナ・カレーニナ」でタイトルロールを演じるのは誰ですか？",
+    "answer": "ボリショイのスター、スヴェトラーナ・ザハロワがアンナ・カレーニナ役を演じます。彼女はノイマイヤーの創作インスピレーションの源でもあります。",
+    "chunk_id": "cc_news_3per_chunk_31",
+    "topic": "スヴェトラーナ・ザハロワ主演",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Richmond BalletのNew Works Festivalはいつ開催され、どのような特徴がありますか？",
+    "answer": "3月20日〜25日に開催され、Richmond Balletと初めて仕事をする4名の振付師が参加します。各振付師はダンサーとの25時間という制限内で10〜15分のバレエ作品を創作するという特徴があります。",
+    "chunk_id": "cc_news_3per_chunk_32",
+    "topic": "Richmond Ballet New Works Festival",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Richmond BalletのNew Works Festivalに参加する4名の振付師は誰ですか？",
+    "answer": "Francesca Harper、Tom Mattingly、Mariana Oliveira、Bradley Shelverの4名です。いずれもRichmond Balletとは初めての協働となります。",
+    "chunk_id": "cc_news_3per_chunk_32",
+    "topic": "参加振付師と25時間制限",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Ballet ArizonaのToday's Masters 2018はいつ開催され、どのような演目が予定されていますか？",
+    "answer": "3月22日〜25日に開催されます。Alejandro Cerrudoのカンパニー初演、NayonIovinoとアーティスティックディレクターIb Andersenによる世界初演が含まれます。",
+    "chunk_id": "cc_news_3per_chunk_32",
+    "topic": "Ballet Arizona Today's Masters 2018",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Ib AndersenのPelvisという作品はどのような内容で、エルヴィス・プレスリーとどのような関係がありますか？",
+    "answer": "1950年代のダンスムーブとコスチュームをフィーチャーし、エルヴィス・プレスリーへの参照を含む作品です。タイトル「Pelvis」はエルヴィスの「Elvis」と「Pelvis（骨盤）」を掛け合わせた言葉遊び（pElvis）になっています。",
+    "chunk_id": "cc_news_3per_chunk_32",
+    "topic": "Ib AndersenとElvis参照",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "San Francisco Balletはジェローム・ロビンズのトリビュートとしてどのような作品を上演しますか？",
+    "answer": "SFBはFancy Free、Opus 19/The Dreamer、The Cage、Other Dancesの4作品を上演し、ロビンズのバレエとブロードウェイでのキャリアを称えます。",
+    "chunk_id": "cc_news_3per_chunk_33",
+    "topic": "上演作品",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "San Francisco Balletのジェローム・ロビンズ・トリビュート公演はいつ開催されますか？",
+    "answer": "公演は3月20日から25日にかけて開催されます。SFBはこのトリビュートを「神秘的・ロマンティック・機知に富む・電撃的」と表現しています。",
+    "chunk_id": "cc_news_3per_chunk_33",
+    "topic": "公演日程",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "今年ジェローム・ロビンズを称えるイベントを開催しているのはSan Francisco Balletだけですか？",
+    "answer": "いいえ、SFBは数十ものバレエ団の一つです。同年にシンシナティ・バレエやニューヨーク・シアター・バレエなど複数の団体がロビンズを称えるイベントを開催しています。",
+    "chunk_id": "cc_news_3per_chunk_33",
+    "topic": "記念イベントの広がり",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Reid BartelmeとHarriet Jungはどのようなデザインデュオですか？",
+    "answer": "デザインとダンスを創造的に融合させることで知られるコスチュームデザインデュオです。昨夏にはJustin Peckのコスチュームをベースにした水着ラインを制作し、11月にはデザイン主導のNutcrackerを発表しました。",
+    "chunk_id": "cc_news_3per_chunk_34",
+    "topic": "Reid BartelmeとHarriet Jung",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "グッゲンハイム美術館のWorks & Processで3月25〜27日に行われるイベントの内容を教えてください。",
+    "answer": "Reid BartelmeとHarriet Jungが、Lar LubovitchやPam Tanowitzなど多数の振付師とコラボレーションし、彼らのコスチュームを使ったショートワークを発表します。ニューヨーク・シティ・バレエのプリンシパル、Russell Janzenらのダンサーが動くモデルとして出演します。",
+    "chunk_id": "cc_news_3per_chunk_34",
+    "topic": "Guggenheim Works & Processイベント",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "今回のグッゲンハイムのショーに出演するダンサーには誰がいますか？",
+    "answer": "ニューヨーク・シティ・バレエのプリンシパルダンサーであるRussell Janzenをはじめ、複数のダンサーが「動くモデル」として出演します。",
+    "chunk_id": "cc_news_3per_chunk_34",
+    "topic": "出演ダンサー",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "カナダ国立バレエ団の新作「Frame by Frame」はどのような作品ですか？",
+    "answer": "革新的な映画監督ノーマン・マクラーレンの生涯と作品をテーマにした全幕バレエで、彼の人生のヴィネット、映画からの動きの引用、技術的革新のリアルタイム再現を組み合わせた作品です。",
+    "chunk_id": "cc_news_3per_chunk_35",
+    "topic": "Frame by Frame バレエ作品の概要",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ノーマン・マクラーレンはどのような映画人ですか？",
+    "answer": "20世紀にアニメーションやピクシレーションなどの映画技術の発展に貢献したカナダ人映画監督で、1952年に短編映画『Neighbours』でアカデミー賞最優秀ドキュメンタリー賞を受賞し、1987年に死去しました。",
+    "chunk_id": "cc_news_3per_chunk_35",
+    "topic": "Norman McLarenの経歴と業績",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "「Frame by Frame」はどのようなコラボレーションで生まれた作品ですか？",
+    "answer": "カナダ国立バレエ団のプリンシパルダンサー兼振付アソシエイトのギヨーム・コテと、映画・舞台監督のロベール・ルパージュが共同制作した作品で、ルパージュにとってカナダ国立バレエ団デビュー作となります。",
+    "chunk_id": "cc_news_3per_chunk_35",
+    "topic": "Guillaume CôtéとRobert Lepageのコラボレーション",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "マクラーレンとバレエ・ダンスにはどのような関係がありましたか？",
+    "answer": "マクラーレンは晩年にバレエに興味を持ち、1968年の『Pas de deux』など複数のダンス映画を制作しました。ギヨーム・コテは彼を「空間と時間の振付家」と表現しています。",
+    "chunk_id": "cc_news_3per_chunk_35",
+    "topic": "McLarenとバレエ・ダンスの関係",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "マクラーレンはパートナーのガイ・グローバーとどのように出会いましたか？",
+    "answer": "マクラーレンはコヴェント・ガーデンでバレエを観覧中の観客席でガイ・グローバーと出会い、その後約50年間パートナーとして過ごしました。グローバーはカナダのダンスフェスティバルのキュレーターでした。",
+    "chunk_id": "cc_news_3per_chunk_35",
+    "topic": "McLarenの私生活（Guy Gloverとの関係）",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ノーマン・マクラーレンに関するリサーチはどのように行われましたか？",
+    "answer": "ロバート・ルパージュがすでにドキュメンタリーを完成させており、カナダ国立映画制作庁（NFB）からマクラーレンの舞台裏映像を入手していました。また、大量の映像鑑賞や文献調査、存命中の協力者との面会も行われました。",
+    "chunk_id": "cc_news_3per_chunk_36",
+    "topic": "リサーチプロセス",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ロバート・ルパージュのドキュメンタリーとNFBの映像素材はプロジェクトにどう貢献しましたか？",
+    "answer": "ルパージュはドキュメンタリー制作を通じてカナダ文化への深い理解を持ち、NFBからマクラーレンの貴重な舞台裏映像を入手していました。これらはリサーチを豊かにし、舞台での個人的な生涯の描き方にも影響を与えました。",
+    "chunk_id": "cc_news_3per_chunk_36",
+    "topic": "ロバート・ルパージュとNFB映像",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "「Frame By Frame」プロジェクトのタイムラインはどのようなものでしたか？",
+    "answer": "最初のワークショップは4年前に行われ、それ以来、年に1回5日間のワークショップをEx Machinaスタジオで実施してきました。",
+    "chunk_id": "cc_news_3per_chunk_36",
+    "topic": "プロジェクトのタイムライン",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Ex Machinaスタジオではダンスとテクノロジーはどのように統合されましたか？",
+    "answer": "まずダンスを先に提示し、その後にテクノロジーを加えるという順序で創作が進められました。マルチメディアチームが映像投影や小道具を用意し、テクノロジーがダンスを支配するのではなく、ダンスを引き立てる形で統合されました。",
+    "chunk_id": "cc_news_3per_chunk_36",
+    "topic": "ダンスと技術の統合",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "バレエ作品『Frame by Frame』はどのような三分割構造になっていますか？",
+    "answer": "第一部はマクラーレンの生涯のヴィネット、第二部はストップモーションやボディペインティングなど彼が先駆けた技術に基づく抽象的なダンス解釈、第三部は彼の映画からの直接引用とその再現で構成されています。",
+    "chunk_id": "cc_news_3per_chunk_37",
+    "topic": "三分割構造",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "マクラーレンが先駆けた技術にはどのようなものがありますか？",
+    "answer": "ストップモーション、ボディペインティング、ボディプロジェクションなどの技術を先駆けており、これらを基にした抽象的なダンス解釈が『Frame by Frame』の第二部で表現されています。",
+    "chunk_id": "cc_news_3per_chunk_37",
+    "topic": "先駆的技術",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "『Pas de deux』の映画効果をバレエでライブ再現することは可能ですか？",
+    "answer": "映画制作時はマクラーレンが数ヶ月かけて作った効果ですが、現代のテクノロジーのおかげでライブでそれを複製することが可能になっています。",
+    "chunk_id": "cc_news_3per_chunk_37",
+    "topic": "Pas de deux ライブ再現",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "『Frame by Frame』はストーリーバレエと言えますか？",
+    "answer": "厳密なストーリーバレエではありませんが、始まりから終わりまで一つの物語の流れがあります。",
+    "chunk_id": "cc_news_3per_chunk_37",
+    "topic": "作品の性質",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "ブロードウェイリバイバル「Carousel」の振付を担当したのは誰ですか？",
+    "answer": "ニューヨーク・シティ・バレエ（NYCB）のソリスト兼レジデント振付家であるJustin Peckが担当しました。彼は演出家のJack O'Brienと並んでトップクレジットを共有しています。",
+    "chunk_id": "cc_news_3per_chunk_38",
+    "topic": "Justin Peckの役割",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "「Carousel」にキャスティングされたNYCBのダンサーは誰ですか？",
+    "answer": "NYCBプリンシパルのAmar Ramasar（水夫Jigger Craigin役）と、NYCBソリストのBrittany Pollack（第2幕の「ドリームバレエ」を踊るLouise役）が出演しています。",
+    "chunk_id": "cc_news_3per_chunk_38",
+    "topic": "NYCBダンサーのキャスト",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "「Carousel」でダンスキャプテンを務めているのは誰で、どのような経緯で参加しましたか？",
+    "answer": "アメリカン・バレエ・シアター（ABT）のソリストCraig Salsteinが、ABTを休職してダンスキャプテン兼アンサンブルとして参加しています。",
+    "chunk_id": "cc_news_3per_chunk_38",
+    "topic": "ダンスキャプテン",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "「Carousel」のアンサンブルにはマイアミ・シティ・バレエ出身のダンサーが参加していますか？",
+    "answer": "はい、Adriana PierceとAndrei Chagas（Pointe 2015 Star of the Corps受賞者）の2名がマイアミ・シティ・バレエから参加し、アンサンブルに加わっています。",
+    "chunk_id": "cc_news_3per_chunk_38",
+    "topic": "MCB出身ダンサー",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "「Carousel」には過去のブロードウェイ作品出身のバレエダンサーも参加していますか？",
+    "answer": "はい、「An American in Paris」出身のLeigh-Ann Esty、David Prottas、Laura Feigや、「Come Fly Away」出身のAmy Ruggieroなど、ベテランのブロードウェイバレエダンサーが多数出演しています。",
+    "chunk_id": "cc_news_3per_chunk_38",
+    "topic": "過去のブロードウェイ出身ダンサー",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Alexander Ekmanの『Midsummer Night's Dream』はどのような作品ですか？",
+    "answer": "現実との境界を曖昧にする夢幻的な作品で、巨大な干し草の俵、長い宴会テーブル、傘、ビーチチェアなど多数の小道具を使用し、Joffrey Balletのカンパニー全員が出演する大規模な舞台です。",
+    "chunk_id": "cc_news_3per_chunk_39",
+    "topic": "Midsummer Night's Dreamの特徴",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "『Midsummer Night's Dream』におけるMikael KarlssonとAnna von Hausswolffの役割は何ですか？",
+    "answer": "Mikael Karlssonはスウェーデン人作曲家として本作のために楽曲を委嘱制作し、歌手のAnna von Hausswolffがその楽曲をステージ上で演奏・歌唱します。彼女はナレーターとして公演の重要な一部を担っています。",
+    "chunk_id": "cc_news_3per_chunk_39",
+    "topic": "Karlsson・von Hausswolffの役割",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Joffrey BalletとAlexander Ekmanの関係について教えてください。",
+    "answer": "今回の『Midsummer Night's Dream』はJoffrey BalletがEkmanの作品を上演する4作目にあたります。芸術監督Wheaterは「Ekmanが私たちを信頼して作品を完全に実現させようとしていることの表れだ」と述べています。",
+    "chunk_id": "cc_news_3per_chunk_39",
+    "topic": "Joffrey BalletとEkmanの関係",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "Ekmanの『Midsummer Night's Dream』の公演日程と会場はどこですか？",
+    "answer": "シカゴのAuditorium Theatreにて、4月25日から5月6日まで上演されます。",
+    "chunk_id": "cc_news_3per_chunk_39",
+    "topic": "公演情報",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "DesignWizardはrebelCon 2017にどのように関わっていますか？",
+    "answer": "DesignWizardは技術系の仲間たちと協力してrebelCon 2017のスポンサーとして参加し、イベントの共同創設に携わっています。",
+    "chunk_id": "cc_news_3per_chunk_40",
+    "topic": "DesignWizardスポンサーシップ",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "rebelConとはどのようなイベントですか？",
+    "answer": "rebelConは非営利のソフトウェア開発カンファレンスです。DesignWizardをはじめとする複数のテック企業が協力して開催するイベントです。",
+    "chunk_id": "cc_news_3per_chunk_40",
+    "topic": "rebelCon概要",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "rebelCon 2017はいつ、どこで開催されますか？",
+    "answer": "rebelCon 2017は2017年6月16日（金曜日）に、Republic of Workにて1日限りのイベントとして開催されます。",
+    "chunk_id": "cc_news_3per_chunk_40",
+    "topic": "イベント詳細",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "アトランタからの4人の容疑者が行った詐欺チェック換金スキームの手口はどのようなものでしたか？",
+    "answer": "アトランタから来た4人が地元の浮浪者を雇い、浮浪者の写真付きIDを撮影して盗んだ口座番号と組み合わせた偽造小切手を作成。浮浪者に銀行で換金させ、報酬として約80ドルを支払う手口でした。",
+    "chunk_id": "cc_news_3per_chunk_41",
+    "topic": "詐欺チェック換金スキームの手口",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "McNeightが強盗被害を受けた経緯と、それがBCSO捜査の発端となった理由を教えてください。",
+    "answer": "McNeightは銀行で1,600ドルの偽造小切手を換金後、約束を破って半額を持って逃走。JohnathonとGermarco Johnsonにガソリンスタンドで捕まり、タイヤアイアンで脅されて金品を奪われたため、BCSoに強盗として通報したことが捜査の発端となりました。",
+    "chunk_id": "cc_news_3per_chunk_41",
+    "topic": "McNeightによる強盗事件と捜査の発端",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "アトランタから来た4人の容疑者の名前と逮捕の経緯はどのようなものでしたか？",
+    "answer": "Clarence Suggs（27歳）とReginald Hughes（26歳）はEast Avenueの店舗付近で逮捕。Johnathan Johnson（22歳）とGermarco Johnson（27歳）はLynn Havenのスーパー駐車場で車両追跡により逮捕されました。Rilesが提供した車両ナンバー情報が特定の鍵となりました。",
+    "chunk_id": "cc_news_3per_chunk_41",
+    "topic": "アトランタ容疑者の役割と逮捕",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "浮浪者のScott McNeightとJames Dean Rilesはそれぞれどのような行動を取りましたか？",
+    "answer": "McNeightは換金後に約束を破り半額を持って逃走し強盗被害に遭いました。一方Rilesは2つ目の銀行で換金成功後に80ドルを受け取り、Millvilleで降ろされた後、パナマシティ警察に自ら通報し車両ナンバー情報を提供しました。",
+    "chunk_id": "cc_news_3per_chunk_41",
+    "topic": "浮浪者の関与と行動",
+    "dataset_type": "cc_news_3per_chunks"
+  },
+  {
+    "question": "逮捕された7人の容疑者とそれぞれの主な罪状を教えてください。",
+    "answer": "Suggs・Hughesは偽造・詐欺関連罪（各2件）。Johnathan Johnsonは武器による強盗・偽造等に加え保護観察違反。Germarco Johnsonは銃器による強盗・偽造等。Sinardは偽造小切手行使・器物損壊等。McNeightとRilesは偽造小切手行使・窃盗罪で逮捕されました。",
+    "chunk_id": "cc_news_3per_chunk_41",
+    "topic": "逮捕された7人の容疑者と罪状",
+    "dataset_type": "cc_news_3per_chunks"
+  }
+]

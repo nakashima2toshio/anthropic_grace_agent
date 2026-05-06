@@ -1,5 +1,10 @@
-![](assets/lp_img.png)
-![](assets/qa_pair_img.png)
+## (1) 自律型Agent 
+### 計画策定（Plan）→ 実行（Execute,実行、スコア）→ 信頼度評価（Confidence）
+### → 介入判定（Intervention）→ リプラン（Replan））
+![自律型Agent](assets/lp_img.png)
+## (2) RAGデータのHuggingFaceからダウンロード、Qdrant(ベクターDBへ)登録
+![RagデータDL・登録](assets/qa_pair_img.png)
+
 ## Agent RAG (Anthropic) プロジェクト
 
 > **はじめにお読みください**
@@ -7,10 +12,11 @@
 > | # | ドキュメント | 説明 |
 > | - | ----------- | ---- |
 > | 1 | [環境構築手順書 (readme_make_env.md)](./readme_make_env.md) | Mac 向け環境構築（Python / Docker / Celery / API キー設定） |
-> | 2 | [RAG ツール使用ガイド (readme_usage_tools.md)](./readme_usage_tools.md) | チャンク作成 → Q/A 生成・Qdrant 登録 → Agent 検索の操作手順 |
-> | 3 | [RAG Q/A 生成・検索システム (readme_rag.md)](./readme_rag.md) | RAG パイプライン全体の設計・クラス・関数 IPO 詳細（セマンティックチャンキング / Q&A 生成 / Qdrant 検索） |
-> | 4 | [ReAct+Reflection エージェント (readme_react_reflection.md)](./readme_react_reflection.md) | ReAct（Reasoning+Acting）ループ + Reflection 自己評価による自律型 RAG エージェントの設計と実装 |
-> | 5 | [自律型 Agent — GRACE (readme_autonomous_agent.md)](./readme_autonomous_agent.md) | GRACE（Plan→Execute→Confidence→Intervention→Replan）アーキテクチャの設計・IPO 詳細 |
+> | 2 | [RAG データ取得ガイド (down_load_non_qa_rag_data_from_huggingface.md)](./down_load_non_qa_rag_data_from_huggingface.md) | RAG データを HuggingFace からダウンロード・前処理する手順 |
+> | 3 | [RAG ツール使用ガイド (readme_usage_tools.md)](./readme_usage_tools.md) | チャンク作成 → Q/A 生成・Qdrant 登録 → Agent 検索の操作手順 |
+> | 4 | [RAG Q/A 生成・検索システム (readme_rag.md)](./readme_rag.md) | RAG パイプライン全体の設計・クラス・関数 IPO 詳細（セマンティックチャンキング / Q&A 生成 / Qdrant 検索） |
+> | 5 | [ReAct+Reflection エージェント (readme_react_reflection.md)](./readme_react_reflection.md) | ReAct（Reasoning+Acting）ループ + Reflection 自己評価による自律型 RAG エージェントの設計と実装 |
+> | 6 | [自律型 Agent — GRACE (readme_autonomous_agent.md)](./readme_autonomous_agent.md) | GRACE（Plan→Execute→Confidence→Intervention→Replan）アーキテクチャの設計・IPO 詳細 |
 
 ---
 

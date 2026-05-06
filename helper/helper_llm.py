@@ -3,7 +3,7 @@ LLMクライアント抽象化レイヤー
 
 OpenAI API / Gemini API / Anthropic API の3プロバイダーに対応する統一インターフェースを提供。
 
-Migration: Gemini → Anthropic (2026-04-20)
+Migration: Gemini → Anthropic (2026-04-20) → OpenAI (2026-04-25)
   - AnthropicClient クラスを追加
   - generate_with_tools() を追加（ReAct Agent 用）
   - create_llm_client() に "anthropic" プロバイダーを追加
@@ -11,9 +11,9 @@ Migration: Gemini → Anthropic (2026-04-20)
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Type, List, Dict, Tuple, NamedTuple
+# [FIX] TypeVar を追加: generate_structured() の戻り型を具体的な Pydantic クラスに推論させる
+from typing import Any, Optional, Type, List, Dict, Tuple, TypeVar
 import os
-import json
 import logging
 
 from pydantic import BaseModel
@@ -37,7 +37,7 @@ except ImportError:
     genai = None
     genai_types = None
 
-# Anthropic (新規追加)
+# Anthropic (後方互換のため維持)
 try:
     import anthropic as anthropic_sdk
 except ImportError:
@@ -48,6 +48,20 @@ import tiktoken
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+# ================================================================
+# [FIX] TypeVar 定義
+# generate_structured() の response_schema 引数に渡した Pydantic クラスを
+# そのまま戻り型として推論させるためのジェネリック型変数。
+#
+# 変更前: generate_structured(...) -> BaseModel
+#   → 呼び出し側で result: EvaluationResult = llm.generate_structured(...)
+#     と書くと「Expected EvaluationResult, got BaseModel」警告が出る。
+#
+# 変更後: generate_structured(..., response_schema: Type[T]) -> T
+#   → response_schema=EvaluationResult を渡せば戻り型が EvaluationResult に確定し警告なし。
+# ================================================================
+T = TypeVar("T", bound=BaseModel)
 
 
 # ================================================================
@@ -64,8 +78,7 @@ LLM_MODELS_GEMINI = [
     "gemini-1.5-flash",
 ]
 
-# --- Anthropic モデル (新規追加) ---
-# [MIGRATION] claude-sonnet-4-6 を追加、旧モデルも後方互換で残存
+# --- Anthropic モデル ---
 LLM_MODELS_ANTHROPIC = [
     "claude-opus-4-7",            # 最新 Opus (2026-04)
     "claude-opus-4-6",            # Opus 前世代
@@ -85,15 +98,12 @@ LLM_MODELS = LLM_MODELS_ANTHROPIC + LLM_MODELS_GEMINI + LLM_MODELS_OPENAI
 
 # ----------------------------------------------------------------
 # 料金設定（USD / 1K tokens）
-# ※ Anthropic 料金は公式ページで最新値を確認すること
-#   https://www.anthropic.com/pricing
 # ----------------------------------------------------------------
 LLM_PRICING = {
-    # Anthropic Claude 4.x (新規追加)
-    # [MIGRATION] claude-sonnet-4-6 を追加
+    # Anthropic Claude 4.x
     "claude-opus-4-7"         : {"input": 0.005,   "output": 0.025  },
     "claude-opus-4-6"         : {"input": 0.015,   "output": 0.075  },
-    "claude-sonnet-4-6"       : {"input": 0.003,   "output": 0.015  },  # デフォルト推奨
+    "claude-sonnet-4-6"       : {"input": 0.003,   "output": 0.015  },
     "claude-sonnet-4-5"       : {"input": 0.003,   "output": 0.015  },
     "claude-haiku-4-5-20251001": {"input": 0.0008,  "output": 0.004  },
 
@@ -108,14 +118,12 @@ LLM_PRICING = {
 
 # ----------------------------------------------------------------
 # コンテキスト上限設定（tokens）
-# ※ max_output は API デフォルト最大値
 # ----------------------------------------------------------------
 LLM_LIMITS = {
-    # Anthropic Claude 4.x (新規追加)
-    # [MIGRATION] claude-sonnet-4-6 を追加（1M トークンコンテキスト対応）
+    # Anthropic Claude 4.x
     "claude-opus-4-7"         : {"max_tokens": 200000,  "max_output": 32000},
     "claude-opus-4-6"         : {"max_tokens": 1000000, "max_output": 32000},
-    "claude-sonnet-4-6"       : {"max_tokens": 1000000, "max_output": 64000},  # デフォルト推奨
+    "claude-sonnet-4-6"       : {"max_tokens": 1000000, "max_output": 64000},
     "claude-sonnet-4-5"       : {"max_tokens": 200000,  "max_output": 64000},
     "claude-haiku-4-5-20251001": {"max_tokens": 200000,  "max_output": 8192 },
 
@@ -156,58 +164,7 @@ EMBEDDING_DIMS = {
 #   export LLM_PROVIDER=anthropic  # anthropic_grace_agent
 #   export LLM_PROVIDER=gemini     # gemini_grace_agent (既存)
 # ================================================================
-# [MIGRATION] デフォルトプロバイダーを "gemini" → "anthropic" に変更
-# 環境変数 LLM_PROVIDER で切り替え可能（gemini_grace_agent は LLM_PROVIDER=gemini を設定）
-DEFAULT_LLM_PROVIDER = os.getenv("LLM_PROVIDER", "anthropic")
-
-
-# ================================================================
-# generate_with_tools() 戻り値型
-# ================================================================
-
-class ToolUseResponse(NamedTuple):
-    """
-    AnthropicClient.generate_with_tools() の戻り値。
-
-    Attributes:
-        text (str):
-            LLM のテキスト応答。複数の text ブロックがある場合は空白で結合済み。
-            ツール呼び出しのみのターンでは空文字列になることがある。
-        tool_calls (List[dict]):
-            ツール呼び出しリスト。各要素は以下のキーを持つ dict。
-              - "name"  (str): ツール名
-              - "input" (dict): ツール引数
-              - "id"    (str): ツール呼び出し ID（tool_result 送信時に必須）
-            ツール呼び出しがない場合は空リスト。
-        stop_reason (str):
-            API の停止理由。
-              - "tool_use"      : ツール呼び出しあり → ループ継続
-              - "end_turn"      : 通常終了 → ループ終了
-              - "max_tokens"    : トークン上限 → ループ終了
-              - "stop_sequence" : ストップシーケンス一致 → ループ終了
-        assistant_message (dict):
-            {"role": "assistant", "content": response.content} 形式のメッセージ。
-            response.content は Anthropic SDK の ContentBlock リストをそのまま保持しており、
-            ブロックの順序・構造が完全に維持される。
-            呼び出し側は再構築せずに self._messages.append(result.assistant_message) で
-            直接会話履歴に追記できる。
-
-    Usage:
-        result = llm.generate_with_tools(messages, tools, system)
-
-        # 名前付きアクセス（推奨）
-        if result.stop_reason != "tool_use" or not result.tool_calls:
-            final_text = result.text
-            break
-        self._messages.append(result.assistant_message)
-
-        # タプルとしてアンパック（後方互換）
-        text, tool_calls, stop_reason, assistant_msg = result
-    """
-    text: str
-    tool_calls: List[Dict[str, Any]]
-    stop_reason: str
-    assistant_message: Dict[str, Any]
+DEFAULT_LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai")
 
 
 # ================================================================
@@ -226,10 +183,10 @@ class LLMClient(ABC):
     def generate_structured(
         self,
         prompt: str,
-        response_schema: Type[BaseModel],
+        response_schema: Type[T],   # [FIX] Type[BaseModel] → Type[T]
         model: Optional[str] = None,
         **kwargs,
-    ) -> BaseModel:
+    ) -> T:                         # [FIX] BaseModel → T
         """構造化出力（Pydantic モデル）を生成"""
         pass
 
@@ -240,7 +197,7 @@ class LLMClient(ABC):
 
 
 # ================================================================
-# OpenAI クライアント（既存のまま維持）
+# OpenAI クライアント
 # ================================================================
 
 class OpenAIClient(LLMClient):
@@ -255,26 +212,56 @@ class OpenAIClient(LLMClient):
 
     def generate_content(self, prompt: str, model: Optional[str] = None, **kwargs) -> str:
         model = model or self.default_model
-        messages = [{"role": "user", "content": prompt}]
+        system = kwargs.pop("system", None)
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+        # max_tokens → max_completion_tokens 変換（gpt-4o 系列の仕様）
+        if "max_tokens" in kwargs and "max_completion_tokens" not in kwargs:
+            kwargs["max_completion_tokens"] = kwargs.pop("max_tokens")
         response = self.client.chat.completions.create(model=model, messages=messages, **kwargs)
         return response.choices[0].message.content
 
     def generate_structured(
         self,
         prompt: str,
-        response_schema: Type[BaseModel],
+        response_schema: Type[T],   # [FIX] Type[BaseModel] → Type[T]
         model: Optional[str] = None,
         **kwargs,
-    ) -> BaseModel:
+    ) -> T:                         # [FIX] BaseModel → T
+        """
+        構造化出力（Pydantic モデル）を生成
+
+        OpenAI beta.chat.completions.parse を使用。
+        response_schema に渡した Pydantic クラスのインスタンスを返す。
+
+        Args:
+            prompt: ユーザープロンプト
+            response_schema: 出力形式を定義する Pydantic モデルクラス
+            model: 使用モデル
+            system: システムプロンプト（kwargs 経由）
+            max_tokens: 最大出力トークン数（内部で max_completion_tokens に変換）
+
+        Returns:
+            response_schema のインスタンス（型チェッカーが具体的な型として認識）
+        """
         model = model or self.default_model
-        messages = [{"role": "user", "content": prompt}]
+        system = kwargs.pop("system", None)
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+        # max_tokens → max_completion_tokens 変換
+        if "max_tokens" in kwargs and "max_completion_tokens" not in kwargs:
+            kwargs["max_completion_tokens"] = kwargs.pop("max_tokens")
         response = self.client.beta.chat.completions.parse(
             model=model,
             messages=messages,
             response_format=response_schema,
             **kwargs,
         )
-        return response.choices[0].message.parsed
+        return response.choices[0].message.parsed  # type: ignore[return-value]
 
     def count_tokens(self, text: str, model: Optional[str] = None) -> int:
         model = model or self.default_model
@@ -283,6 +270,102 @@ class OpenAIClient(LLMClient):
         except KeyError:
             encoding = tiktoken.get_encoding("cl100k_base")
         return len(encoding.encode(text))
+
+    def generate_with_tools(
+        self,
+        messages: List[Dict[str, Any]],
+        tools: List[Dict[str, Any]],
+        system: str = "",
+        model: Optional[str] = None,
+        max_tokens: int = 4096,
+        **kwargs,
+    ) -> tuple:
+        """
+        Tool Use を含む ReAct ループの 1 ステップを実行する。
+
+        Anthropic との差異:
+          - ツール定義: "input_schema" → "parameters"
+          - ツール検出: stop_reason=="tool_use" → finish_reason=="tool_calls"
+          - ツール引数: b.input(dict) → json.loads(tc.function.arguments)
+          - system: system= パラメータ → messages 先頭に {"role":"system"} として挿入
+
+        Returns:
+            (text, tool_calls, finish_reason) のタプル
+            - text:          LLM のテキスト応答
+            - tool_calls:    [{"name":..., "input":..., "id":...}, ...]
+            - finish_reason: "tool_calls" | "stop" | "length"
+        """
+        import json as _json
+
+        model_name = model or self.default_model
+
+        full_messages: List[Dict[str, Any]] = []
+        if system:
+            full_messages.append({"role": "system", "content": system})
+        full_messages.extend(messages)
+
+        create_kwargs: Dict[str, Any] = {
+            "model"   : model_name,
+            "messages": full_messages,
+        }
+
+        if tools:
+            openai_tools = [
+                {
+                    "type"    : "function",
+                    "function": {
+                        "name"       : t["name"],
+                        "description": t.get("description", ""),
+                        "parameters" : t.get("input_schema", t.get("parameters", {})),
+                    }
+                }
+                for t in tools
+            ]
+            create_kwargs["tools"] = openai_tools
+
+        if "temperature" in kwargs:
+            create_kwargs["temperature"] = kwargs["temperature"]
+
+        response = self.client.chat.completions.create(**create_kwargs)
+        msg = response.choices[0].message
+
+        tool_calls_result = []
+        if msg.tool_calls:
+            for tc in msg.tool_calls:
+                try:
+                    args = _json.loads(tc.function.arguments)
+                except Exception:
+                    args = {}
+                tool_calls_result.append({
+                    "name" : tc.function.name,
+                    "input": args,
+                    "id"   : tc.id,
+                })
+
+        text = msg.content or ""
+        finish_reason = response.choices[0].finish_reason or "stop"
+
+        return text, tool_calls_result, finish_reason
+
+    def build_tool_result_message(
+        self,
+        tool_calls: List[Dict[str, Any]],
+        results: List[str],
+    ) -> List[Dict[str, Any]]:
+        """
+        ツール結果メッセージを構築する（OpenAI 形式）。
+
+        OpenAI: [{"role":"tool","tool_call_id":id,"content":...}, ...]
+                → messages に複数追記（ツール1件ごとに1メッセージ）
+        """
+        return [
+            {
+                "role"        : "tool",
+                "tool_call_id": tc["id"],
+                "content"     : result,
+            }
+            for tc, result in zip(tool_calls, results)
+        ]
 
 
 # ================================================================
@@ -319,10 +402,10 @@ class GeminiClient(LLMClient):
     def generate_structured(
         self,
         prompt: str,
-        response_schema: Type[BaseModel],
+        response_schema: Type[T],   # [FIX] Type[BaseModel] → Type[T]
         model: Optional[str] = None,
         **kwargs,
-    ) -> BaseModel:
+    ) -> T:                         # [FIX] BaseModel → T
         model_name = model or self.default_model
         config: Dict[str, Any] = {
             "response_mime_type": "application/json",
@@ -355,8 +438,7 @@ class GeminiClient(LLMClient):
 
 
 # ================================================================
-# Anthropic クライアント（新規追加）
-# Migration: Gemini → Anthropic (2026-04-20)
+# Anthropic クライアント（後方互換のため維持）
 # ================================================================
 
 class AnthropicClient(LLMClient):
@@ -373,7 +455,6 @@ class AnthropicClient(LLMClient):
     def __init__(
         self,
         api_key: Optional[str] = None,
-        # [MIGRATION] デフォルトモデルを claude-sonnet-4-5 → claude-sonnet-4-6 に更新
         default_model: str = "claude-sonnet-4-6",
     ):
         if anthropic_sdk is None:
@@ -388,33 +469,13 @@ class AnthropicClient(LLMClient):
         self.default_model = default_model
         logger.info(f"AnthropicClient initialized: model={default_model}")
 
-    # ----------------------------------------------------------
-    # generate_content
-    # Gemini: client.models.generate_content(model, contents, config)
-    # Anthropic: client.messages.create(model, messages, max_tokens, system)
-    # ----------------------------------------------------------
     def generate_content(
         self,
         prompt: str,
         model: Optional[str] = None,
         **kwargs,
     ) -> str:
-        """
-        テキスト生成
-
-        Args:
-            prompt: ユーザープロンプト
-            model: 使用モデル（省略時は default_model）
-            system: システムプロンプト（kwargs 経由で渡す）
-            max_tokens: 最大出力トークン数（デフォルト 4096）
-            temperature: 温度パラメータ（0.0〜1.0）
-
-        Returns:
-            生成テキスト
-        """
         model_name = model or self.default_model
-
-        # kwargs からパラメータを取り出す
         system = kwargs.pop("system", "You are a helpful assistant.")
         max_tokens = kwargs.pop("max_tokens", 4096)
         temperature = kwargs.pop("temperature", None)
@@ -431,41 +492,28 @@ class AnthropicClient(LLMClient):
         response = self.client.messages.create(**create_kwargs)
         return response.content[0].text
 
-    # ----------------------------------------------------------
-    # generate_structured
-    # Gemini: response_schema=PydanticClass を直渡し
-    # Anthropic: Tool Use で JSON を強制取得し Pydantic で validate
-    # ----------------------------------------------------------
     def generate_structured(
         self,
         prompt: str,
-        response_schema: Type[BaseModel],
+        response_schema: Type[T],   # [FIX] Type[BaseModel] → Type[T]
         model: Optional[str] = None,
         **kwargs,
-    ) -> BaseModel:
+    ) -> T:                         # [FIX] BaseModel → T
         """
         構造化出力（Pydantic モデル）を生成
 
-        Anthropic には Gemini の response_schema 直渡し機能がないため、
-        Tool Use（tool_choice: "tool"）で JSON を強制取得し、
+        Anthropic には response_schema 直渡し機能がないため、
+        Tool Use（tool_choice: "tool"）で JSON を強制取得し
         Pydantic の model_validate() でパースする。
 
-        Args:
-            prompt: ユーザープロンプト
-            response_schema: 出力形式を定義する Pydantic モデルクラス
-            model: 使用モデル
-            system: システムプロンプト（kwargs 経由）
-            max_tokens: 最大出力トークン数（デフォルト 4096）
-
         Returns:
-            response_schema のインスタンス
+            response_schema のインスタンス（型チェッカーが具体的な型として認識）
         """
         model_name  = model or self.default_model
         system      = kwargs.pop("system", "You are a helpful assistant. Return structured data as requested.")
         max_tokens  = kwargs.pop("max_tokens", 4096)
-        temperature = kwargs.pop("temperature", None)  # [FIX] temperature を kwargs から取り出す
+        temperature = kwargs.pop("temperature", None)
 
-        # Tool Use 定義：Pydantic の JSON Schema を input_schema として渡す
         tool_def = {
             "name"        : "structured_output",
             "description" : (
@@ -484,18 +532,16 @@ class AnthropicClient(LLMClient):
             "messages"   : [{"role": "user", "content": prompt}],
         }
         if temperature is not None:
-            create_kwargs["temperature"] = temperature  # [FIX] temperature を API に渡す
+            create_kwargs["temperature"] = temperature
 
         response = self.client.messages.create(**create_kwargs)
 
-        # stop_reason が "tool_use" のはず（tool_choice 強制のため）
         if response.stop_reason != "tool_use":
             raise ValueError(
                 f"Unexpected stop_reason: {response.stop_reason}. "
                 f"Content: {response.content}"
             )
 
-        # tool_use ブロックから input（dict）を取り出す
         try:
             tool_block = next(
                 b for b in response.content if b.type == "tool_use"
@@ -505,7 +551,6 @@ class AnthropicClient(LLMClient):
                 f"No tool_use block in response. Content: {response.content}"
             )
 
-        # Pydantic で validate（dict → モデルインスタンス）
         try:
             return response_schema.model_validate(tool_block.input)
         except Exception as e:
@@ -513,18 +558,7 @@ class AnthropicClient(LLMClient):
             logger.error(f"Raw tool input: {tool_block.input}")
             raise
 
-    # ----------------------------------------------------------
-    # count_tokens
-    # Gemini: client.models.count_tokens(model, contents)
-    # Anthropic: client.messages.count_tokens(model, messages)
-    # ----------------------------------------------------------
     def count_tokens(self, text: str, model: Optional[str] = None) -> int:
-        """
-        入力テキストのトークン数を返す
-
-        Returns:
-            入力トークン数
-        """
         model_name = model or self.default_model
         response = self.client.messages.count_tokens(
             model=model_name,
@@ -532,10 +566,6 @@ class AnthropicClient(LLMClient):
         )
         return response.input_tokens
 
-    # ----------------------------------------------------------
-    # generate_with_tools  ← ReAct Agent 用（Gemini 版には存在しない）
-    # agent_service.py の ReAct ループから呼び出す
-    # ----------------------------------------------------------
     def generate_with_tools(
         self,
         messages: List[Dict[str, Any]],
@@ -543,50 +573,9 @@ class AnthropicClient(LLMClient):
         system: str = "",
         model: Optional[str] = None,
         max_tokens: int = 4096,
-    ) -> "ToolUseResponse":
+    ) -> Tuple[str, List[Dict[str, Any]], str]:
         """
-        Tool Use を含む ReAct ループの 1 ステップを実行する。
-
-        Args:
-            messages: 会話履歴（Anthropic messages 形式）
-                      例: [{"role": "user", "content": "..."}, ...]
-            tools: ツール定義リスト
-                   例: [{"name": "search", "description": "...", "input_schema": {...}}]
-                   Reflection フェーズなどツールが不要な場合は [] を渡す。
-            system: システムプロンプト
-            model: 使用モデル（省略時は default_model）
-            max_tokens: 最大出力トークン数
-
-        Returns:
-            ToolUseResponse (NamedTuple):
-                .text            — テキスト応答（複数 text ブロックは空白結合済み）
-                .tool_calls      — ツール呼び出しリスト [{"name","input","id"}, ...]
-                .stop_reason     — "tool_use" | "end_turn" | "max_tokens" | "stop_sequence"
-                .assistant_message — {"role":"assistant","content": response.content}
-                                     呼び出し側は再構築せず直接 messages に追記可能。
-
-        Usage (ReAct ループの典型パターン):
-            messages = [{"role": "user", "content": query}]
-            while True:
-                result = llm.generate_with_tools(messages, tools, system)
-
-                if result.stop_reason != "tool_use" or not result.tool_calls:
-                    final_text = result.text
-                    break
-
-                # assistant ターンを履歴に追記（再構築不要）
-                messages.append(result.assistant_message)
-
-                # ツールを実行して tool_result を追記
-                tool_results = []
-                for tc in result.tool_calls:
-                    result_str = execute_tool(tc["name"], tc["input"])
-                    tool_results.append({
-                        "type"       : "tool_result",
-                        "tool_use_id": tc["id"],
-                        "content"    : result_str,
-                    })
-                messages.append({"role": "user", "content": tool_results})
+        Tool Use を含む ReAct ループの 1 ステップを実行する（Anthropic 形式）。
         """
         model_name = model or self.default_model
 
@@ -601,7 +590,6 @@ class AnthropicClient(LLMClient):
 
         response = self.client.messages.create(**create_kwargs)
 
-        # ツール呼び出しを抽出
         tool_calls = [
             {
                 "name" : b.name,
@@ -612,28 +600,12 @@ class AnthropicClient(LLMClient):
             if b.type == "tool_use"
         ]
 
-        # テキスト応答を結合（複数 text ブロックが返る場合もある）
         text = " ".join(
             b.text for b in response.content if b.type == "text"
         )
 
-        # response.content をそのまま保持した assistant メッセージを構築
-        # 呼び出し側での再構築を不要にし、ブロック順序・構造を完全に維持する
-        assistant_message: Dict[str, Any] = {
-            "role"   : "assistant",
-            "content": response.content,
-        }
+        return text, tool_calls, response.stop_reason
 
-        return ToolUseResponse(
-            text=text,
-            tool_calls=tool_calls,
-            stop_reason=response.stop_reason,
-            assistant_message=assistant_message,
-        )
-
-    # ----------------------------------------------------------
-    # ユーティリティ
-    # ----------------------------------------------------------
     def build_tool_result_message(
         self,
         tool_calls: List[Dict[str, Any]],
@@ -641,17 +613,6 @@ class AnthropicClient(LLMClient):
     ) -> Dict[str, Any]:
         """
         ツール実行結果を Anthropic の tool_result メッセージ形式に変換する。
-
-        generate_with_tools() の戻り値 tool_calls と、
-        実行結果文字列リスト results を受け取り、
-        messages に追加できる形式の dict を返す。
-
-        Args:
-            tool_calls: generate_with_tools() の tool_calls
-            results: 各ツールの実行結果文字列（tool_calls と同順）
-
-        Returns:
-            {"role": "user", "content": [{"type": "tool_result", ...}, ...]}
         """
         content = [
             {
@@ -668,31 +629,18 @@ class AnthropicClient(LLMClient):
 # ファクトリ関数
 # ================================================================
 
-# [MIGRATION] デフォルト引数: "gemini" → "anthropic"
-def create_llm_client(provider: str = "anthropic", **kwargs) -> LLMClient:
+def create_llm_client(provider: str = "openai", **kwargs) -> LLMClient:
     """
     LLM クライアントのファクトリ関数
 
     Args:
-        provider: "anthropic" | "openai" | "gemini"
-                  デフォルト: "anthropic"（anthropic_grace_agent 移植後）
-                  gemini_grace_agent では LLM_PROVIDER=gemini を環境変数で指定する
+        provider: "openai" | "anthropic" | "gemini"
+                  デフォルト: "openai"（openai_grace_agent）
         **kwargs: 各クライアントの __init__ に渡すパラメータ
-                  例: api_key="sk-ant-...", default_model="claude-sonnet-4-6"
+                  例: default_model="gpt-4o-mini"
 
     Returns:
         LLMClient インスタンス
-
-    Example:
-        # anthropic_grace_agent（デフォルト）
-        llm = create_llm_client()
-        text = llm.generate_content("こんにちは")
-
-        # モデル指定
-        llm = create_llm_client("anthropic", default_model="claude-sonnet-4-6")
-
-        # gemini_grace_agent（後方互換）
-        llm = create_llm_client("gemini")
     """
     provider = (provider or DEFAULT_LLM_PROVIDER).lower()
 
@@ -710,7 +658,7 @@ def create_llm_client(provider: str = "anthropic", **kwargs) -> LLMClient:
 
 
 # ================================================================
-# ヘルパー関数（既存のまま維持 + Anthropic 対応追加）
+# ヘルパー関数
 # ================================================================
 
 def get_available_llm_models() -> List[str]:
@@ -719,7 +667,7 @@ def get_available_llm_models() -> List[str]:
 
 
 def get_available_llm_models_by_provider(provider: str) -> List[str]:
-    """プロバイダー別モデル一覧（新規追加）"""
+    """プロバイダー別モデル一覧"""
     provider = provider.lower()
     if provider == "anthropic":
         return LLM_MODELS_ANTHROPIC

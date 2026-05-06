@@ -6,12 +6,12 @@ GRACE Intervention - HITL（Human-in-the-Loop）介入システム
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Optional, List, Callable, Any, Literal, Dict
+from typing import Optional, List, Callable, Any, Dict
 from enum import Enum
 from datetime import datetime
 
 from .schemas import ExecutionPlan, PlanStep
-from .confidence import InterventionLevel, ConfidenceScore, ActionDecision
+from .confidence import InterventionLevel, ActionDecision
 from .config import get_config, GraceConfig
 
 logger = logging.getLogger(__name__)

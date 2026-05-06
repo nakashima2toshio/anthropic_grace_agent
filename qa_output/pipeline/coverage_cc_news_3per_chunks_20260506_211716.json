@@ -1,0 +1,176 @@
+{
+  "coverage_rate": 0.9555555555555556,
+  "covered_chunks": 43,
+  "total_chunks": 45,
+  "uncovered_chunks": [
+    {
+      "chunk_id": "cc_news_3per_chunk_42",
+      "similarity": 0.696169669034011,
+      "gap": 0.0038303309659889484,
+      "text_preview": "34 total views, 34 views today Share Us..."
+    },
+    {
+      "chunk_id": "cc_news_3per_chunk_44",
+      "similarity": 0.6945443775440663,
+      "gap": 0.005455622455933673,
+      "text_preview": "36 total views, 36 views today Share Us..."
+    }
+  ],
+  "max_similarities": [
+    0.850346362328719,
+    0.850842197826553,
+    0.8775317873842148,
+    0.8568317936202522,
+    0.8752866692516842,
+    0.8728891541042669,
+    0.8223743795259133,
+    0.8374759149162871,
+    0.8783992670182358,
+    0.8647391676376266,
+    0.8307336849514563,
+    0.9013157281119135,
+    0.8697819825302405,
+    0.8658415193654614,
+    0.82856635170186,
+    0.8510454220572983,
+    0.8355879977306155,
+    0.8006347177503621,
+    0.8880945903547816,
+    0.9013250806814429,
+    0.8240707716385097,
+    0.7985064564323282,
+    0.857470737788037,
+    0.8949421477726803,
+    0.8307097659490807,
+    0.8589384119512872,
+    0.8599442578006085,
+    0.8489649090774016,
+    0.8908312231659146,
+    0.8173253749313023,
+    0.8541507773935445,
+    0.8427206677557896,
+    0.8404155305591957,
+    0.8855594564022288,
+    0.897070373797539,
+    0.8447432497372015,
+    0.8262469665995001,
+    0.8635887107491091,
+    0.8557988729128942,
+    0.8577295278121587,
+    0.8838508944442278,
+    0.8049954370072041,
+    0.696169669034011,
+    0.7056020418456604,
+    0.6945443775440663
+  ],
+  "threshold": 0.7,
+  "multi_threshold": {
+    "strict": {
+      "threshold": 0.8,
+      "covered_chunks": 41,
+      "coverage_rate": 0.9111111111111111,
+      "uncovered_count": 4,
+      "uncovered_chunks": [
+        {
+          "chunk_id": "cc_news_3per_chunk_21",
+          "similarity": 0.7985064564323282,
+          "gap": 0.00149354356767184
+        },
+        {
+          "chunk_id": "cc_news_3per_chunk_42",
+          "similarity": 0.696169669034011,
+          "gap": 0.10383033096598904
+        },
+        {
+          "chunk_id": "cc_news_3per_chunk_43",
+          "similarity": 0.7056020418456604,
+          "gap": 0.0943979581543396
+        },
+        {
+          "chunk_id": "cc_news_3per_chunk_44",
+          "similarity": 0.6945443775440663,
+          "gap": 0.10545562245593376
+        }
+      ]
+    },
+    "standard": {
+      "threshold": 0.7,
+      "covered_chunks": 43,
+      "coverage_rate": 0.9555555555555556,
+      "uncovered_count": 2,
+      "uncovered_chunks": [
+        {
+          "chunk_id": "cc_news_3per_chunk_42",
+          "similarity": 0.696169669034011,
+          "gap": 0.0038303309659889484
+        },
+        {
+          "chunk_id": "cc_news_3per_chunk_44",
+          "similarity": 0.6945443775440663,
+          "gap": 0.005455622455933673
+        }
+      ]
+    },
+    "lenient": {
+      "threshold": 0.6,
+      "covered_chunks": 45,
+      "coverage_rate": 1.0,
+      "uncovered_count": 0,
+      "uncovered_chunks": []
+    }
+  },
+  "chunk_analysis": {
+    "by_length": {
+      "long": {
+        "count": 16,
+        "covered": 16,
+        "avg_similarity": 0.8464938402796813,
+        "coverage_rate": 1.0
+      },
+      "medium": {
+        "count": 14,
+        "covered": 14,
+        "avg_similarity": 0.8406162797269807,
+        "coverage_rate": 1.0
+      },
+      "short": {
+        "count": 15,
+        "covered": 13,
+        "avg_similarity": 0.8454670012198687,
+        "coverage_rate": 0.8666666666666667
+      }
+    },
+    "by_position": {
+      "beginning": {
+        "count": 15,
+        "covered": 15,
+        "avg_similarity": 0.8588637306849788,
+        "coverage_rate": 1.0
+      },
+      "middle": {
+        "count": 16,
+        "covered": 16,
+        "avg_similarity": 0.8507839151546998,
+        "coverage_rate": 1.0
+      },
+      "end": {
+        "count": 14,
+        "covered": 12,
+        "avg_similarity": 0.8213596983000561,
+        "coverage_rate": 0.8571428571428571
+      }
+    },
+    "summary": {
+      "total_chunks": 45,
+      "total_qa_pairs": 144,
+      "threshold_used": 0.7,
+      "insights": []
+    }
+  },
+  "dataset_type": "cc_news_3per_chunks",
+  "optimal_thresholds": {
+    "strict": 0.8,
+    "standard": 0.7,
+    "lenient": 0.6
+  }
+}
