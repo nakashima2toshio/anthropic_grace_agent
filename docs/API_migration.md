@@ -2,9 +2,23 @@
 
 **プロジェクト**: `anthropic_grace_agent`
 **移植元**: Gemini API (`google.genai`)
-**移植先**: Anthropic API (`anthropic`) + OpenAI Embedding API
+**移植先**: Anthropic API (`anthropic`) + Gemini Embedding API
 **作成日**: 2026-04-20
 **完了日**: 2026-04-25
+**最終更新日**: 2026-05-08（Embedding プロバイダー変更を反映）
+
+---
+
+## ⚠️ 移植後の変更（2026-05 時点の現行構成）
+
+移植当初は Embedding を **OpenAI `text-embedding-3-large`** に変更したが、
+**OpenAI API Tier制限の問題により Gemini `gemini-embedding-001` に戻した**（`config.py:514` 参照）。
+
+| 役割 | 移植当初（2026-04-25） | **現行（2026-05-08）** |
+|---|---|---|
+| LLM | Anthropic `claude-sonnet-4-6` | **同左（変更なし）** |
+| Embedding | OpenAI `text-embedding-3-large` (3072次元) | **Gemini `gemini-embedding-001` (3072次元)** |
+| Vector DB | Qdrant localhost:6333 | 同左（変更なし） |
 
 ---
 
@@ -15,7 +29,7 @@
 | 移植対象ファイル | **29 ファイル**（変更不要 5 ファイル含む） |
 | 移植実施ファイル | **24 ファイル** |
 | 変更不要ファイル | 5 ファイル（Qdrant UI 系・間接変更のみ） |
-| Embedding | Anthropic に Embedding API なし → **OpenAI `text-embedding-3-large` (3072次元)** |
+| Embedding | Anthropic に Embedding API なし → **Gemini `gemini-embedding-001` (3072次元)**（OpenAI Tier問題のため Gemini に戻す） |
 | Qdrant 互換性 | Gemini / OpenAI ともに **3072次元** → **コレクション再作成不要** |
 
 ---
@@ -210,13 +224,33 @@ response = client.messages.create(model=..., messages=messages, ...)
 
 ### 1-7. Embedding
 
-| 項目 | Gemini | OpenAI（Anthropic 代替）|
+> **現行（2026-05）**: OpenAI Tier制限の問題により、Embedding は Gemini `gemini-embedding-001` を継続使用。
+
+| 項目 | Gemini（移植元・現行） | OpenAI（一時移行・現在は非使用）|
 |---|---|---|
 | API | `client.models.embed_content(model, contents, config)` | `client.embeddings.create(model, input, dimensions)` |
-| デフォルトモデル | `gemini-embedding-001` | `text-embedding-3-large` |
-| 次元数 | 3072 | **3072**（同じ → Qdrant 互換） |
-| task_type | `retrieval_query` / `retrieval_document` 等 | **なし** |
-| 理由 | — | **Anthropic に Embedding API がない** |
+| デフォルトモデル | **`gemini-embedding-001`（現行）** | `text-embedding-3-large` |
+| 次元数 | **3072** | 3072（同じ → Qdrant 互換） |
+| task_type | `retrieval_query` / `retrieval_document` 等 | なし |
+| 使用状況 | **現行採用** | OpenAI Tier制限のため一時採用後に Gemini へ戻す |
+| API キー | `GOOGLE_API_KEY` / `GEMINI_API_KEY` | `OPENAI_API_KEY` |
+
+```python
+# 現行: Gemini Embedding（google-genai）
+from google import genai
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+response = client.models.embed_content(
+    model="gemini-embedding-001",
+    contents=text,
+    config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT")
+)
+vector = response.embeddings[0].values  # 3072次元
+
+# 非使用（OpenAI Embedding - OpenAI Tier問題のため退避）
+# response = client.embeddings.create(
+#     model="text-embedding-3-large", input=text, dimensions=3072
+# )
+```
 
 ---
 
@@ -231,8 +265,8 @@ response = client.messages.create(model=..., messages=messages, ...)
 | `types.Part.from_function_response()` | `messages` に `tool_result` を直接追記 |
 | `response.candidates[0].content.parts` | `response.content`（フラットなリスト） |
 | `response.usage_metadata.prompt_token_count` | `response.usage.input_tokens` |
-| `task_type`（Embedding） | 存在しない |
-| Embedding API | 存在しない → **OpenAI を使用** |
+| `task_type`（Embedding） | Anthropic に Embedding API なし（Gemini Embedding を継続使用） |
+| Embedding API | Anthropic に存在しない → **Gemini `gemini-embedding-001` を継続使用** |
 
 ---
 
@@ -439,14 +473,17 @@ def _get_default_config(self):
 Python コードを直しても YAML が古いと実行時に上書きされる。
 
 ```yaml
-# grace_config.yml 変更後
+# grace_config.yml 現行設定（2026-05）
 llm:
   provider: "anthropic"
   model: "claude-sonnet-4-6"
 embedding:
-  provider: "openai"
-  model: "text-embedding-3-large"
+  provider: "gemini"           # OpenAI Tier問題のため gemini に戻す
+  model: "gemini-embedding-001"
 ```
+
+> **注意**: `config.yml` の `default_embedding` は移植当初の `"openai"` のままになっている箇所があるが、
+> 実行時は `config.py:514` の `DEFAULT_EMBEDDING_PROVIDER = "gemini"` が優先される。
 
 ---
 
@@ -483,21 +520,31 @@ embedding:
 
 ## 第4部　環境変数・設定
 
-### .env ファイル
+### .env ファイル（現行 2026-05）
 
 ```bash
-# Anthropic API（必須）
+# Anthropic API（LLM 必須）
 ANTHROPIC_API_KEY=sk-ant-...
 
-# OpenAI（Embedding 用・必須）
-OPENAI_API_KEY=sk-...
+# Gemini（Embedding 用・必須）
+GOOGLE_API_KEY=AIza...
+GEMINI_API_KEY=AIza...   # GOOGLE_API_KEY と同値でも可
+
+# OpenAI（オプション - OpenAI Tier問題のため Embedding には非使用）
+# OPENAI_API_KEY=sk-...   # Celery 設定等で参照されるが Embedding には使わない
 
 # プロバイダー切替
 LLM_PROVIDER=anthropic
-EMBEDDING_PROVIDER=openai
+EMBEDDING_PROVIDER=gemini   # "openai" から "gemini" に戻す
 
-# Gemini（後方互換・gemini_grace_agent 用）
-GOOGLE_API_KEY=AIza...
+# Rerank（オプション）
+COHERE_API_KEY=...
+
+# インフラ
+QDRANT_HOST=localhost
+QDRANT_PORT=6333
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
 ```
 
 ### Anthropic モデル一覧（2026年4月時点）
@@ -510,11 +557,19 @@ GOOGLE_API_KEY=AIza...
 | `claude-sonnet-4-5` | Sonnet 前世代（後方互換） | 2,000 | 1,600,000 |
 | `claude-haiku-4-5-20251001` | 高速・低コスト | 4,000 | 2,000,000 |
 
-### OpenAI Embedding モデル比較
+### Gemini Embedding モデル（現行採用）
+
+| モデル | 次元数 | 価格 | 備考 |
+|---|---|---|---|
+| `gemini-embedding-001` | **3072** | 無料枠あり | **本プロジェクト現行採用** |
+
+### OpenAI Embedding モデル（参考・現在は非使用）
+
+> OpenAI Tier制限問題のため、現在は Gemini Embedding を使用。
 
 | モデル | 次元数 | 価格（/1K tokens） | 備考 |
 |---|---|---|---|
-| `text-embedding-3-large` | **3072** | $0.00013 | **本プロジェクト採用**。Gemini と同次元 |
+| `text-embedding-3-large` | **3072** | $0.00013 | Gemini と同次元（Tier制限で非使用） |
 | `text-embedding-3-small` | 1536 | $0.00002 | 軽量・低コスト |
 | `text-embedding-ada-002` | 1536 | $0.00010 | 旧世代・非推奨 |
 
@@ -522,25 +577,36 @@ GOOGLE_API_KEY=AIza...
 
 ## 第5部　Qdrant コレクション互換性
 
-`text-embedding-3-large`（OpenAI）と `gemini-embedding-001`（Gemini）は
-**どちらも 3072 次元**のため、Qdrant コレクションの**再作成は不要**。
+`gemini-embedding-001`（Gemini）は **3072 次元**。
+`text-embedding-3-large`（OpenAI）も 3072 次元のため、どちらを使っても Qdrant コレクションの**再作成は不要**。
 
-ただし、ベクトル空間の分布特性はモデルごとに異なるため、
-既存コレクションに OpenAI Embedding でクエリすると精度が低下する可能性がある。
+現行は Gemini Embedding を使用しており、Qdrant コレクションはそのまま利用可能。
 
-**推奨対応方針：**
+### コレクション構成（現行）
 
-1. **並行コレクション作成**（推奨）：サフィックス `_openai` で新コレクションを作成し精度を比較してから本番切り替えする。
-2. **既存コレクション再登録**：データを `text-embedding-3-large` で再 Embedding して登録し直す（構造変更不要）。
+| コレクション名 | Embedding | 次元数 | 状態 |
+|---|---|---|---|
+| `qa_corpus_gemini` | `gemini-embedding-001` | 3072 | **現行使用** |
+| `qa_cc_news_gemini` | `gemini-embedding-001` | 3072 | **現行使用** |
+| `qa_livedoor_gemini` | `gemini-embedding-001` | 3072 | **現行使用** |
+| `qa_corpus` | `text-embedding-3-small` | 1536 | Legacy（旧 OpenAI） |
+| `qa_cc_news_a02_llm` | `text-embedding-3-small` | 1536 | Legacy |
 
-```python
-# dimensions パラメータで次元数を短縮可能
-response = client.embeddings.create(
-    model="text-embedding-3-large",
-    input=text,
-    dimensions=1536    # 3072 → 1536（MTEB スコアはほぼ変わらない）
-)
-```
+### ベクトル空間の注意点
+
+ベクトル空間の分布特性はモデルごとに異なる。
+**Gemini Embedding で登録したコレクションには Gemini Embedding でクエリする**ことが必須。
+OpenAI Embedding でクエリすると精度が大幅に低下する。
+
+---
+
+## 第6部　移植後の変更履歴
+
+| 日付 | 変更内容 | 理由 |
+|---|---|---|
+| 2026-04-25 | LLM: Gemini → Anthropic `claude-sonnet-4-6` | 移植完了 |
+| 2026-04-25 | Embedding: Gemini → OpenAI `text-embedding-3-large` | Anthropic に Embedding なし |
+| 2026-05 初旬 | Embedding: OpenAI → Gemini `gemini-embedding-001` に戻す | OpenAI API Tier制限問題 |
 
 ---
 
